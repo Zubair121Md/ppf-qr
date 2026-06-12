@@ -1,5 +1,7 @@
 'use client';
 
+import LogoutButton from '@/components/shared/LogoutButton';
+
 export default function WorkerHeader({
   title,
   subtitle,
@@ -12,25 +14,31 @@ export default function WorkerHeader({
   return (
     <header className={`safe-top safe-x sticky top-0 z-30 ${bg}`}>
       <div className="px-4 py-3">
-        {onBack && (
-          <button
-            type="button"
-            onClick={onBack}
-            className="touch-target -ml-2 mb-1 text-sm opacity-90 flex items-center gap-1 min-h-0 h-10"
-          >
-            <span aria-hidden>←</span> Back
-          </button>
-        )}
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0 flex-1">
-            <h1 className="text-lg font-bold truncate">{title}</h1>
-            {subtitle && (
-              <p className={`text-sm truncate ${variant === 'green' ? 'opacity-90' : 'text-gray-500'}`}>
-                {subtitle}
-              </p>
-            )}
+        <div className="flex items-center justify-between gap-2 mb-1">
+          {onBack ? (
+            <button
+              type="button"
+              onClick={onBack}
+              className="touch-target -ml-2 text-sm opacity-90 flex items-center gap-1 min-h-0 h-10"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+              </svg>
+              Back
+            </button>
+          ) : <div />}
+          <div className="flex items-center gap-2">
+            {rightAction}
+            <LogoutButton variant="worker" />
           </div>
-          {rightAction && <div className="flex-shrink-0">{rightAction}</div>}
+        </div>
+        <div className="min-w-0">
+          <h1 className="text-lg font-bold truncate">{title}</h1>
+          {subtitle && (
+            <p className={`text-sm truncate ${variant === 'green' ? 'opacity-90' : 'text-gray-500'}`}>
+              {subtitle}
+            </p>
+          )}
         </div>
       </div>
     </header>

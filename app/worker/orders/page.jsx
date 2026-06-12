@@ -8,6 +8,8 @@ import WorkerHeader from '@/components/layouts/WorkerHeader';
 import WorkerShell from '@/components/layouts/WorkerShell';
 import EmptyState from '@/components/ui/EmptyState';
 import Spinner from '@/components/ui/Spinner';
+import { IconRefresh } from '@/components/ui/Icons';
+import { fetchWithRetry } from '@/lib/fetch-retry';
 import { getWorkerLang } from '@/lib/speech';
 
 export default function WorkerOrdersPage() {
@@ -22,7 +24,7 @@ export default function WorkerOrdersPage() {
   const lang = getWorkerLang();
 
   const loadOrders = useCallback(async (me) => {
-    const ordersRes = await fetch('/api/orders?worker=me&date=today');
+    const ordersRes = await fetchWithRetry('/api/orders?worker=me&date=today');
     if (ordersRes.ok) {
       const data = await ordersRes.json();
       const assigned = data.filter(
@@ -37,7 +39,7 @@ export default function WorkerOrdersPage() {
   useEffect(() => {
     async function load() {
       try {
-        const meRes = await fetch('/api/auth/me');
+        const meRes = await fetchWithRetry('/api/auth/me');
         if (!meRes.ok) {
           router.push('/worker/login');
           return;
@@ -110,7 +112,7 @@ export default function WorkerOrdersPage() {
             className="touch-target w-10 h-10 rounded-xl bg-white/10 text-sm"
             aria-label="Refresh"
           >
-            {refreshing ? '…' : '↻'}
+            <IconRefresh className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
           </button>
         }
       />
@@ -118,7 +120,6 @@ export default function WorkerOrdersPage() {
       <div className="worker-content space-y-3">
         {orders.length === 0 ? (
           <EmptyState
-            icon="📦"
             title="No orders today"
             description="Check back later or claim an available order below"
           />

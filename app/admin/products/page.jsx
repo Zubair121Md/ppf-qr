@@ -4,10 +4,12 @@ import { useState, useEffect } from 'react';
 import QRCode from 'qrcode';
 import AdminShell from '@/components/layouts/AdminShell';
 import Button from '@/components/ui/Button';
+import QRDisplay from '@/components/shared/QRDisplay';
 
 export default function AdminProductsPage() {
   const [products, setProducts] = useState([]);
   const [showModal, setShowModal] = useState(false);
+  const [qrPreview, setQrPreview] = useState(null);
   const [filterIncomplete, setFilterIncomplete] = useState(false);
   const [form, setForm] = useState({
     product_id: '',
@@ -145,17 +147,27 @@ export default function AdminProductsPage() {
                   <td className="p-3 font-mono">{p.product_id}</td>
                   <td className="p-3">{p.name_english}</td>
                   <td className="p-3">{p.category}</td>
-                  <td className="p-3 text-xs text-gray-500">/p/{p.product_id}</td>
                   <td className="p-3">
-                    <span className="text-green-600">{p.is_active !== false ? 'Active' : 'Inactive'}</span>
+                    <button
+                      type="button"
+                      onClick={() => setQrPreview(p)}
+                      className="text-farm-green text-sm font-medium hover:underline"
+                    >
+                      View QR
+                    </button>
+                  </td>
+                  <td className="p-3">
+                    <span className={p.is_active !== false ? 'text-green-600' : 'text-gray-400'}>
+                      {p.is_active !== false ? 'Active' : 'Inactive'}
+                    </span>
                   </td>
                   <td className="p-3">
                     <button
                       type="button"
                       onClick={() => downloadQR(p.product_id)}
-                      className="text-farm-green text-sm hover:underline"
+                      className="text-gray-600 text-sm hover:underline"
                     >
-                      Download QR
+                      Download
                     </button>
                   </td>
                 </tr>
@@ -164,6 +176,20 @@ export default function AdminProductsPage() {
           </table>
         </div>
       </div>
+
+      {qrPreview && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 safe-top safe-bottom safe-x p-4">
+          <div className="bg-white rounded-3xl p-6 max-w-sm w-full text-center">
+            <h3 className="font-bold text-lg mb-1">{qrPreview.name_english}</h3>
+            <p className="font-mono text-sm text-gray-400 mb-4">{qrPreview.product_id}</p>
+            <QRDisplay productId={qrPreview.product_id} size={240} />
+            <div className="flex gap-2 mt-6">
+              <Button variant="secondary" fullWidth onClick={() => setQrPreview(null)}>Close</Button>
+              <Button fullWidth onClick={() => downloadQR(qrPreview.product_id)}>Download PNG</Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {showModal && (
         <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50 safe-top safe-bottom safe-x">

@@ -9,6 +9,7 @@ import WorkerShell from '@/components/layouts/WorkerShell';
 import ProgressBar from '@/components/ui/ProgressBar';
 import Spinner from '@/components/ui/Spinner';
 import Button from '@/components/ui/Button';
+import { IconCheck } from '@/components/ui/Icons';
 import {
   getWorkerLang,
   getMessage,
@@ -107,7 +108,7 @@ function PackOrderContent() {
       <WorkerShell noPadding>
         <WorkerHeader title="Error" onBack={() => router.push('/worker/orders')} variant="white" />
         <div className="worker-content flex flex-col items-center justify-center text-center">
-          <span className="text-5xl mb-4">🚫</span>
+          <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mb-4 text-red-600 text-2xl font-bold">!</div>
           <p className="text-red-600 text-lg font-medium mb-6">{error}</p>
           <Button onClick={() => router.push('/worker/orders')}>Back to orders</Button>
         </div>
@@ -119,7 +120,7 @@ function PackOrderContent() {
     return (
       <div className="min-h-dvh bg-farm-green flex flex-col items-center justify-center text-white p-6 safe-top safe-bottom safe-x text-center">
         <div className="w-24 h-24 rounded-full bg-white/20 flex items-center justify-center mb-6">
-          <span className="text-5xl">✓</span>
+          <IconCheck className="w-12 h-12" />
         </div>
         <h1 className="text-3xl font-bold mb-2">{getMessage('order_complete_title', lang)}</h1>
         <p className="text-xl opacity-90 mb-1">{order.order_id}</p>

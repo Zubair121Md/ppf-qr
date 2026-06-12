@@ -2,6 +2,10 @@
 
 import { useState } from 'react';
 import * as XLSX from 'xlsx';
+import { fetchWithRetry } from '@/lib/fetch-retry';
+
+const MAX_IMPORT_ROWS = 500;
+const MAX_FILE_MB = 5;
 
 export default function OrderImport({ onSuccess }) {
   const [tab, setTab] = useState('excel');
@@ -24,10 +28,20 @@ export default function OrderImport({ onSuccess }) {
   }
 
   async function parseExcel(file) {
+    if (file.size > MAX_FILE_MB * 1024 * 1024) {
+      alert(`File too large. Maximum ${MAX_FILE_MB}MB. Split into smaller files.`);
+      return;
+    }
+
     const buffer = await file.arrayBuffer();
     const workbook = XLSX.read(buffer);
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
     const rows = XLSX.utils.sheet_to_json(sheet);
+
+    if (rows.length > MAX_IMPORT_ROWS) {
+      alert(`Too many rows (${rows.length}). Maximum ${MAX_IMPORT_ROWS} per import. Split the file.`);
+      return;
+    }
 
     const idsRes = await fetch('/api/products?ids=true');
     const validIds = new Set(await idsRes.json());
@@ -73,7 +87,7 @@ export default function OrderImport({ onSuccess }) {
   async function confirmImport() {
     setImporting(true);
     try {
-      const res = await fetch('/api/orders/import', {
+      const res = await fetchWithRetry('/api/orders/import', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

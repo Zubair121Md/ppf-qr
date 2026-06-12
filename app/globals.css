@@ -12,6 +12,8 @@
     @apply bg-surface text-gray-900 antialiased;
     min-height: 100dvh;
     overscroll-behavior-y: none;
+    font-feature-settings: 'kern' 1;
+    -webkit-font-smoothing: antialiased;
   }
 
   /* Prevent iOS zoom on input focus */

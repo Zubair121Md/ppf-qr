@@ -1,3 +1,5 @@
+import ErrorBoundary from '@/components/shared/ErrorBoundary';
+
 export const metadata = {
   title: 'FarmScan Worker',
   appleWebApp: {
@@ -16,5 +18,5 @@ export const viewport = {
 };
 
 export default function WorkerLayout({ children }) {
-  return children;
+  return <ErrorBoundary>{children}</ErrorBoundary>;
 }

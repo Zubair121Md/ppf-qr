@@ -33,7 +33,7 @@ export default function WorkerCard({ worker, stats }) {
   return (
     <div className="bg-surface-card rounded-2xl border border-gray-100 p-4 shadow-card relative">
       {errorsThisWeek > 0 && (
-        <span className="absolute top-3 right-3 w-5 h-5 bg-red-500 text-white text-[10px] rounded-full flex items-center justify-center font-bold">
+        <span className="absolute top-3 right-3 min-w-[20px] h-5 px-1.5 bg-red-500 text-white text-[10px] rounded-full flex items-center justify-center font-bold">
           {errorsThisWeek}
         </span>
       )}
@@ -45,7 +45,7 @@ export default function WorkerCard({ worker, stats }) {
         </span>
       </div>
 
-      <p className="text-xs text-gray-400 mb-2">🇮🇳 {LANG_LABELS[preferred_lang] || preferred_lang}</p>
+      <p className="text-xs text-gray-400 mb-2">{LANG_LABELS[preferred_lang] || preferred_lang}</p>
 
       <div className={`text-xs px-2.5 py-1.5 rounded-xl mb-3 font-medium ${cfg.bg}`}>
         {cfg.label}
