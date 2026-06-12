@@ -1,0 +1,28 @@
+import { NextResponse } from 'next/server';
+import { supabaseAdmin } from '@/lib/db';
+import { getWorkerFromRequest } from '@/lib/auth';
+
+export async function GET(request, { params }) {
+  const worker = await getWorkerFromRequest(request);
+  if (!worker) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  const { data, error } = await supabaseAdmin
+    .from('orders')
+    .select(`
+      *,
+      order_items (
+        item_id, product_id, quantity, unit, is_packed, packed_at, packed_by, scan_count,
+        products (product_id, name_english, name_tamil, name_malayalam, name_hindi, image_url, category)
+      )
+    `)
+    .eq('order_id', params.id)
+    .single();
+
+  if (error || !data) {
+    return NextResponse.json({ error: 'Order not found' }, { status: 404 });
+  }
+
+  return NextResponse.json(data);
+}

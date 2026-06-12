@@ -1,0 +1,66 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    @apply bg-surface text-gray-900 antialiased;
+    min-height: 100dvh;
+    overscroll-behavior-y: none;
+  }
+
+  /* Prevent iOS zoom on input focus */
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
+
+  @media (min-width: 768px) {
+    input,
+    select,
+    textarea {
+      font-size: inherit;
+    }
+  }
+}
+
+@layer components {
+  .safe-top {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  .safe-x {
+    padding-left: env(safe-area-inset-left, 0px);
+    padding-right: env(safe-area-inset-right, 0px);
+  }
+
+  .touch-target {
+    @apply min-h-touch min-w-touch inline-flex items-center justify-center;
+  }
+
+  .worker-page {
+    @apply min-h-dvh flex flex-col bg-surface;
+  }
+
+  .worker-content {
+    @apply flex-1 overflow-y-auto overscroll-contain px-4 py-4;
+  }
+
+  .admin-table-wrap {
+    @apply overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0;
+  }
+
+  .card-press {
+    @apply active:scale-[0.98] transition-transform duration-100;
+  }
+}
