@@ -38,8 +38,10 @@ Copy `.env.local` and fill in:
 | `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anon/public key |
 | `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key (keep secret) |
-| `JWT_SECRET` | Random 32+ character string |
-| `NEXT_PUBLIC_APP_URL` | `http://localhost:3000` for local dev |
+| `JWT_SECRET` | Random 32+ character string (**required on Vercel — login fails without it**) |
+| `NEXT_PUBLIC_APP_URL` | `http://localhost:3000` locally, `https://your-app.vercel.app` on Vercel |
+
+After deploying, verify: `https://your-app.vercel.app/api/health` should return `{ "ok": true }`.
 
 ### 2. Database Setup
 

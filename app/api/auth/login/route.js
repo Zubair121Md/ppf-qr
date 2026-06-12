@@ -1,9 +1,21 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/db';
 import { verifyPassword, signToken, setAuthCookie } from '@/lib/auth';
+import { getMissingServerEnv } from '@/lib/env';
 
 export async function POST(request) {
   try {
+    const missingEnv = getMissingServerEnv();
+    if (missingEnv.length) {
+      console.error('Login blocked — missing env:', missingEnv.join(', '));
+      return NextResponse.json(
+        {
+          error: 'Server misconfigured. Missing env vars on Vercel: ' + missingEnv.join(', '),
+        },
+        { status: 503 }
+      );
+    }
+
     const { username, password } = await request.json();
 
     if (!username || !password) {

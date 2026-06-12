@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "seed": "node supabase/seed.js"
+    "seed": "node supabase/seed.js",
+    "seed:demo": "node supabase/seed-demo.js"
   },
   "dependencies": {
     "@supabase/auth-helpers-nextjs": "^0.15.0",
