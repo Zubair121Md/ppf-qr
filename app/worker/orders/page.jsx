@@ -45,6 +45,12 @@ export default function WorkerOrdersPage() {
           return;
         }
         const me = await meRes.json();
+
+        if (me.role === 'admin') {
+          router.replace('/admin');
+          return;
+        }
+
         setWorker(me);
 
         const feedbackRes = await fetch(`/api/workers/${me.worker_id}/feedback`);
@@ -120,8 +126,8 @@ export default function WorkerOrdersPage() {
       <div className="worker-content space-y-3">
         {orders.length === 0 ? (
           <EmptyState
-            title="No orders today"
-            description="Check back later or claim an available order below"
+            title="No orders assigned today"
+            description="No orders are assigned to your account yet. Check Available orders below, or ask your supervisor to import orders in the admin panel."
           />
         ) : (
           orders.map((order) => (

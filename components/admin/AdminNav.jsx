@@ -4,6 +4,8 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import LogoutButton from '@/components/shared/LogoutButton';
+import Image from 'next/image';
+import { BRAND } from '@/lib/brand';
 import {
   IconDashboard, IconOrders, IconProducts, IconWorkers, IconQC,
 } from '@/components/ui/Icons';
@@ -27,7 +29,10 @@ export default function AdminNav() {
     <>
       <nav className="hidden md:block bg-farm-green text-white safe-top sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
-          <Link href="/admin" className="text-xl font-bold tracking-tight">FarmScan Admin</Link>
+          <Link href="/admin" className="flex items-center gap-2.5">
+            <Image src="/ppf-logo.png" alt={BRAND.name} width={36} height={36} className="rounded-full" />
+            <span className="text-lg font-bold tracking-tight">{BRAND.shortName} Admin</span>
+          </Link>
           <div className="flex items-center gap-1">
             {LINKS.map(({ href, label, Icon }) => (
               <Link
@@ -48,7 +53,10 @@ export default function AdminNav() {
 
       <nav className="md:hidden bg-farm-green text-white safe-top sticky top-0 z-40">
         <div className="px-4 py-3 flex items-center justify-between">
-          <Link href="/admin" className="text-lg font-bold">FarmScan</Link>
+          <Link href="/admin" className="flex items-center gap-2">
+            <Image src="/ppf-logo.png" alt={BRAND.shortName} width={32} height={32} className="rounded-full" />
+            <span className="text-lg font-bold">{BRAND.shortName}</span>
+          </Link>
           <div className="flex items-center gap-2">
             <LogoutButton variant="admin" />
             <button
@@ -92,7 +100,7 @@ export default function AdminNav() {
               key={href}
               href={href}
               className={`flex flex-col items-center justify-center py-2 min-h-[56px] text-[10px] gap-0.5 ${
-                isActive(href) ? 'text-farm-green font-semibold' : 'text-gray-500'
+                isActive(href) ? 'text-ppf-purple font-semibold' : 'text-gray-500'
               }`}
             >
               <Icon className="w-5 h-5" />

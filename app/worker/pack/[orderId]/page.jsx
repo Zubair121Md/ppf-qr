@@ -118,7 +118,7 @@ function PackOrderContent() {
 
   if (orderComplete && order) {
     return (
-      <div className="min-h-dvh bg-farm-green flex flex-col items-center justify-center text-white p-6 safe-top safe-bottom safe-x text-center">
+      <div className="min-h-dvh bg-ppf-purple flex flex-col items-center justify-center text-white p-6 safe-top safe-bottom safe-x text-center">
         <div className="w-24 h-24 rounded-full bg-white/20 flex items-center justify-center mb-6">
           <IconCheck className="w-12 h-12" />
         </div>
@@ -129,7 +129,7 @@ function PackOrderContent() {
         <Button
           variant="secondary"
           size="lg"
-          className="mt-10 bg-white text-farm-green border-0"
+          className="mt-10 bg-white text-ppf-purple border-0"
           onClick={() => router.push('/worker/orders')}
         >
           Back to My Orders

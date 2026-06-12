@@ -9,7 +9,7 @@ export default function WorkerHeader({
   rightAction,
   variant = 'green',
 }) {
-  const bg = variant === 'green' ? 'bg-farm-green text-white' : 'bg-white text-gray-900 border-b border-gray-100';
+  const bg = variant === 'green' ? 'bg-ppf-purple text-white' : 'bg-white text-gray-900 border-b border-gray-100';
 
   return (
     <header className={`safe-top safe-x sticky top-0 z-30 ${bg}`}>

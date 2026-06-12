@@ -7,15 +7,21 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        ppf: {
+          purple: '#7B3F9E',
+          'purple-light': '#9B5BB8',
+          'purple-dark': '#5E2F7A',
+          green: '#4CAF50',
+        },
         farm: {
-          green: '#1B5E20',
-          'green-light': '#2E7D32',
-          'green-dark': '#0D3B10',
+          green: '#7B3F9E',
+          'green-light': '#9B5BB8',
+          'green-dark': '#5E2F7A',
         },
         surface: {
-          DEFAULT: '#F5F7F5',
+          DEFAULT: '#F8F5FA',
           card: '#FFFFFF',
-          muted: '#E8EDE8',
+          muted: '#EDE8F0',
         },
       },
       spacing: {

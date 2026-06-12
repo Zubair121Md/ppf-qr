@@ -18,7 +18,7 @@ export default function QRDisplay({ productId, size = 200, showLabel = true, cla
       errorCorrectionLevel: 'H',
       width: size,
       margin: 2,
-      color: { dark: '#1B5E20', light: '#FFFFFF' },
+      color: { dark: '#7B3F9E', light: '#FFFFFF' },
     }).then(setDataUrl).catch(() => {});
   }, [productId, size]);
 

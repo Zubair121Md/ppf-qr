@@ -1,55 +1,41 @@
-# FarmScan
+# Purple Patch Farms (PPF) Packing
 
-Farm packing system with QR scanning, multi-language audio feedback, and admin order distribution. Built with Next.js 14, Tailwind CSS, Supabase, and deployed on Vercel.
+Farm packing system with QR scanning, multi-language audio feedback, and admin order distribution. Built with Next.js 14, Tailwind CSS, Supabase, deployed on Vercel.
 
-## Folder Structure
+**Live:** [https://ppf-qr.vercel.app](https://ppf-qr.vercel.app)
 
-```
-/app
-  /admin          Admin dashboard, orders, products, workers, QC
-  /worker         Worker login, orders list, packing flow, QR scanner
-  /p/[productId]  Public product page (QR scan target)
-  /api            REST API routes (auth, orders, products, workers, QC)
-/components
-  /admin          OrderImport, DistributionTable, QCErrorForm, WorkerCard, LiveDashboard
-  /worker         FeedbackAlert, OrderCard, PackingChecklist, QRScanner, ProductConfirm
-  /shared         LanguageAudio
-/lib
-  db.js           Supabase clients (anon + service role)
-  auth.js         JWT + bcrypt helpers
-  distribute.js   LPT bin-packing order distribution
-  speech.js       Web Speech API (Tamil, Malayalam, Hindi, English)
-  constants.js    Error codes, thresholds, language list
-/supabase
-  schema.sql      PostgreSQL schema
-  seed.js         Worker accounts + sample products
-/public
-  manifest.json   PWA manifest
-```
+## Logins (after seed)
 
-## Quick Start
+| Role | Username | Password |
+|------|----------|----------|
+| Admin | `admin` | `admin123` |
+| Workers | `l1` – `l10` | `farmscan123` |
 
-### 1. Environment Variables
+> **Admin users** are redirected to `/admin` — they do not see worker orders.  
+> **Workers** log in at `/worker/login` to see assigned orders.
 
-Copy `.env.local` and fill in:
+## Environment Variables (Vercel — all 5 required)
 
-| Variable | Description |
-|----------|-------------|
-| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anon/public key |
-| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key (keep secret) |
-| `JWT_SECRET` | Random 32+ character string (**required on Vercel — login fails without it**) |
-| `NEXT_PUBLIC_APP_URL` | `http://localhost:3000` locally, `https://your-app.vercel.app` on Vercel |
+| Variable | Example |
+|----------|---------|
+| `NEXT_PUBLIC_SUPABASE_URL` | `https://xxx.supabase.co` |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | anon key |
+| `SUPABASE_SERVICE_ROLE_KEY` | service role key |
+| `JWT_SECRET` | random 32+ char string |
+| `NEXT_PUBLIC_APP_URL` | `https://ppf-qr.vercel.app` |
 
-After deploying, verify: `https://your-app.vercel.app/api/health` should return `{ "ok": true }`.
+Verify: `https://ppf-qr.vercel.app/api/health` → `{ "ok": true }`
 
-### 2. Database Setup
+## Database Setup
 
-1. Create a [Supabase](https://supabase.com) project
-2. Open SQL Editor → paste contents of `supabase/schema.sql` → Run
-3. Seed data: `npm run seed`
+1. Run `supabase/schema.sql` in Supabase SQL Editor
+2. Seed data:
+   ```bash
+   npm run seed:demo
+   ```
+   Run locally with production `.env.local` values to seed the production database.
 
-### 3. Run Locally
+## Local Development
 
 ```bash
 npm install
@@ -57,28 +43,3 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000)
-
-### Default Logins (after seed)
-
-| Username | Password | Role |
-|----------|----------|------|
-| l1 – l10 | farmscan123 | Worker |
-| admin | admin123 | Admin |
-
-## Deployment (Vercel + Supabase)
-
-1. Push to GitHub
-2. [vercel.com](https://vercel.com) → New Project → import repo
-3. Add all environment variables in Vercel dashboard
-4. Set `NEXT_PUBLIC_APP_URL` to your Vercel URL (e.g. `https://farmscan.vercel.app`)
-5. Run `supabase/schema.sql` in Supabase SQL Editor
-6. Run `npm run seed` locally (with production env vars) or seed via Supabase dashboard
-7. Deploy
-
-## Key Features
-
-- **QR Product IDs** — Permanent IDs like `STR-001` encode `https://your-app.vercel.app/p/STR-001`
-- **Worker packing flow** — Tap item → audio in worker's language → scan crate QR → confirm
-- **Order distribution** — LPT bin-packing assigns orders across 10 workers by weight
-- **QC feedback** — Admin logs errors; workers see full-screen alerts on next login
-- **4 languages** — Tamil, Malayalam, Hindi, English (UI + TTS audio)

@@ -1,17 +1,21 @@
 import './globals.css';
+import { BRAND } from '@/lib/brand';
 
 export const metadata = {
-  title: 'FarmScan',
-  description: 'Farm packing system with QR scanning',
+  title: BRAND.appName,
+  description: `${BRAND.name} — ${BRAND.tagline}`,
   manifest: '/manifest.json',
   icons: {
-    icon: '/favicon.ico',
+    icon: [
+      { url: '/favicon.ico' },
+      { url: '/icon-192.png', sizes: '192x192', type: 'image/png' },
+    ],
     apple: '/apple-touch-icon.png',
   },
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'FarmScan',
+    title: BRAND.shortName,
   },
   formatDetection: {
     telephone: false,
@@ -24,7 +28,7 @@ export const viewport = {
   maximumScale: 1,
   userScalable: false,
   viewportFit: 'cover',
-  themeColor: '#1B5E20',
+  themeColor: BRAND.themeColor,
 };
 
 export default function RootLayout({ children }) {

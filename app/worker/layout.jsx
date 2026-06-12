@@ -1,11 +1,12 @@
 import ErrorBoundary from '@/components/shared/ErrorBoundary';
+import { BRAND } from '@/lib/brand';
 
 export const metadata = {
-  title: 'FarmScan Worker',
+  title: `${BRAND.shortName} Worker`,
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
-    title: 'FarmScan',
+    title: BRAND.shortName,
   },
 };
 

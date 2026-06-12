@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { LANG_LABELS, getMessage, setWorkerLang, getWorkerLang } from '@/lib/speech';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
+import PPFLogo from '@/components/shared/PPFLogo';
 import { fetchWithRetry } from '@/lib/fetch-retry';
 
 const LANGS = ['tamil', 'malayalam', 'hindi', 'english'];
@@ -62,12 +63,8 @@ export default function WorkerLoginPage() {
     <div className="min-h-dvh flex flex-col bg-surface safe-top safe-bottom safe-x">
       <div className="flex-1 flex flex-col items-center justify-center px-5 py-8">
         <div className="w-full max-w-sm">
-          <div className="text-center mb-10">
-            <div className="w-16 h-16 bg-farm-green rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-card">
-              <span className="text-white text-2xl font-bold">FS</span>
-            </div>
-            <h1 className="text-3xl font-bold text-farm-green">FarmScan</h1>
-            <p className="text-gray-500 mt-1 text-sm">Worker packing app</p>
+          <div className="mb-10">
+            <PPFLogo size={96} />
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -122,7 +119,7 @@ export default function WorkerLoginPage() {
               onClick={() => selectLang(l)}
               className={`h-12 text-sm font-semibold rounded-2xl border-2 card-press transition-colors ${
                 lang === l
-                  ? 'border-farm-green bg-farm-green text-white'
+                  ? 'border-ppf-purple bg-ppf-purple text-white'
                   : 'border-gray-200 bg-white text-gray-700'
               }`}
             >

@@ -32,6 +32,9 @@ export function middleware(request) {
     if (!user) {
       return NextResponse.redirect(new URL('/worker/login', request.url));
     }
+    if (user.role === 'admin') {
+      return NextResponse.redirect(new URL('/admin', request.url));
+    }
     return NextResponse.next();
   }
 
