@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation';
 import { getWorkerFromCookies } from '@/lib/auth';
 
-export default async function WorkerHome() {
+export default async function WorkerOrdersLayout({ children }) {
   const worker = await getWorkerFromCookies();
 
   if (!worker) {
@@ -12,5 +12,5 @@ export default async function WorkerHome() {
     redirect('/admin');
   }
 
-  redirect('/worker/orders');
+  return children;
 }
