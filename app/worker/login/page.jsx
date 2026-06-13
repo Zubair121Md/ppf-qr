@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { LANG_LABELS, getMessage, setWorkerLang, getWorkerLang } from '@/lib/speech';
+import { LANG_LABELS, getMessage, setWorkerLang, getWorkerLang, syncWorkerLangFromProfile } from '@/lib/speech';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import PPFLogo from '@/components/shared/PPFLogo';
@@ -50,6 +50,9 @@ export default function WorkerLoginPage() {
       if (data.role === 'admin') {
         router.push('/admin');
       } else {
+        if (data.preferred_lang) {
+          syncWorkerLangFromProfile(data.preferred_lang);
+        }
         router.push('/worker/orders');
       }
     } catch {

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 
-const BUILD_VERSION = 'ppf-v2-admin-redirect';
+const BUILD_VERSION = 'ppf-v3-admin-crud-audio';
 
 export async function GET() {
   return NextResponse.json({

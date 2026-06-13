@@ -29,7 +29,7 @@ function ScanContent() {
   const [flash, setFlash] = useState(null);
   const [scanError, setScanError] = useState('');
   const [processing, setProcessing] = useState(false);
-  const [audioKey, setAudioKey] = useState('scan_prompt');
+  const [resultAudio, setResultAudio] = useState(null);
 
   useEffect(() => {
     async function load() {
@@ -56,7 +56,7 @@ function ScanContent() {
 
     if (scannedProductId === expectedProductId) {
       setFlash('green');
-      setAudioKey('scan_correct');
+      setResultAudio({ key: 'scan_correct', replacements: { product: productName } });
       speakMessage('scan_correct', lang, { product: productName });
 
       const packRes = await fetchWithRetry(`/api/order-items/${itemId}/pack`, {
@@ -81,7 +81,7 @@ function ScanContent() {
     } else {
       setFlash('red');
       setWrongCount((c) => c + 1);
-      setAudioKey('scan_wrong');
+      setResultAudio({ key: 'scan_wrong', replacements: { product: expectedName } });
       speakMessage('scan_wrong', lang, { product: expectedName });
       setScanError(getMessage('scan_wrong', lang, { product: expectedName }));
 
@@ -155,10 +155,12 @@ function ScanContent() {
         </div>
 
         <AudioBanner
-          text={productName}
+          messageKey={resultAudio?.key || 'scan_prompt'}
           lang={lang}
-          variant="dark"
-          autoPlay
+          replacements={resultAudio?.replacements || { product: productName }}
+          variant={resultAudio?.key === 'scan_wrong' ? 'error' : 'dark'}
+          autoPlay={!resultAudio || resultAudio.key !== 'scan_correct'}
+          className={resultAudio?.key === 'scan_correct' ? 'opacity-0 h-0 p-0 overflow-hidden' : ''}
         />
       </header>
 

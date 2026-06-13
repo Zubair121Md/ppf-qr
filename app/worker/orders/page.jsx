@@ -10,7 +10,7 @@ import EmptyState from '@/components/ui/EmptyState';
 import Spinner from '@/components/ui/Spinner';
 import { IconRefresh } from '@/components/ui/Icons';
 import { fetchWithRetry } from '@/lib/fetch-retry';
-import { getWorkerLang } from '@/lib/speech';
+import { getWorkerLang, syncWorkerLangFromProfile } from '@/lib/speech';
 
 export default function WorkerOrdersPage() {
   const router = useRouter();
@@ -51,6 +51,9 @@ export default function WorkerOrdersPage() {
           return;
         }
 
+        if (me.preferred_lang) {
+          syncWorkerLangFromProfile(me.preferred_lang);
+        }
         setWorker(me);
 
         const feedbackRes = await fetch(`/api/workers/${me.worker_id}/feedback`);

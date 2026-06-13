@@ -28,7 +28,13 @@ export default function ProductConfirm({ product, quantity, unit, lang, onScan, 
           {quantity} {unit}
         </p>
 
-        <AudioBanner text={name} lang={lang} className="mb-4" autoPlay />
+        <AudioBanner
+          messageKey="tap_to_scan"
+          lang={lang}
+          replacements={{ product: name, quantity: String(quantity), unit }}
+          className="mb-4"
+          autoPlay
+        />
 
         <div className="space-y-3">
           <Button size="xl" fullWidth onClick={onScan}>

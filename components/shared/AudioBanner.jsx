@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import { IconVolume } from '@/components/ui/Icons';
 import { speak, getMessage } from '@/lib/speech';
 
@@ -13,19 +13,17 @@ export default function AudioBanner({
   variant = 'default',
   className = '',
 }) {
-  const [visible, setVisible] = useState(false);
-  const displayText = text || (messageKey ? getMessage(messageKey, lang, replacements) : '');
+  const displayText = useMemo(
+    () => text || (messageKey ? getMessage(messageKey, lang, replacements) : ''),
+    [text, messageKey, lang, replacements]
+  );
 
   useEffect(() => {
-    if (!displayText) return;
-    setVisible(true);
-
-    if (autoPlay) {
-      speak(displayText, lang, 0.8);
-    }
+    if (!displayText || !autoPlay) return;
+    speak(displayText, lang, 0.8);
   }, [displayText, lang, autoPlay]);
 
-  if (!visible || !displayText) return null;
+  if (!displayText) return null;
 
   const bg = {
     default: 'bg-farm-green/10 border-farm-green/30 text-farm-green',

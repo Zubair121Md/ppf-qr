@@ -15,6 +15,7 @@ import {
   getMessage,
   speakProductName,
   speakMessage,
+  syncWorkerLangFromProfile,
 } from '@/lib/speech';
 
 function PackOrderContent() {
@@ -52,6 +53,9 @@ function PackOrderContent() {
           return;
         }
         const me = await meRes.json();
+        if (me.preferred_lang) {
+          syncWorkerLangFromProfile(me.preferred_lang);
+        }
         setWorker(me);
 
         const orderRes = await fetch(`/api/orders/${orderId}`);
