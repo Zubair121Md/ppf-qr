@@ -30,6 +30,8 @@ export function computeTeamSummary(workers) {
     (acc, w) => {
       const p = w.performance || {};
       acc.totalEarnings += p.estimated_earnings || 0;
+      acc.totalPaid += p.payments?.total_paid || 0;
+      acc.balanceDue += p.payments?.balance_due || 0;
       acc.periodEarnings += p.period_earnings || 0;
       acc.totalPoints += p.total_points || 0;
       acc.ordersToday += p.today?.orders_packed || 0;
@@ -41,6 +43,8 @@ export function computeTeamSummary(workers) {
     },
     {
       totalEarnings: 0,
+      totalPaid: 0,
+      balanceDue: 0,
       periodEarnings: 0,
       totalPoints: 0,
       ordersToday: 0,
@@ -59,16 +63,16 @@ export default function WorkerPerformanceSummary({ workers, periodLabel = '7 day
     <div className="space-y-6">
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
         <SummaryCard
-          label="Est. total payout"
+          label="Est. total owed"
           value={`₹${summary.totalEarnings.toLocaleString()}`}
           sub={`All-time · ₹${RUPEES_PER_POINT}/point`}
-          accent="green"
+          accent="purple"
         />
         <SummaryCard
-          label={`Period payout (${periodLabel})`}
-          value={`₹${summary.periodEarnings.toLocaleString()}`}
-          sub={`+${summary.periodEarned} pts earned`}
-          accent="purple"
+          label="Total paid out"
+          value={`₹${summary.totalPaid.toLocaleString()}`}
+          sub={`Balance due ₹${summary.balanceDue.toLocaleString()}`}
+          accent="green"
         />
         <SummaryCard
           label="Packed today"

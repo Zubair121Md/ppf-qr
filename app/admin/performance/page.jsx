@@ -36,6 +36,8 @@ export default function AdminPerformancePage() {
       const p = w.performance || {};
       switch (key) {
         case 'earnings': return p.estimated_earnings || 0;
+        case 'paid': return p.payments?.total_paid || 0;
+        case 'balance': return p.payments?.balance_due || 0;
         case 'today': return p.today?.orders_packed || 0;
         case 'errors': return p.qc_errors?.length || 0;
         case 'kg': return p.today?.kg_packed || 0;
@@ -72,7 +74,9 @@ export default function AdminPerformancePage() {
             className="text-sm border rounded-lg px-3 py-2 bg-white"
           >
             <option value="points">Sort by points</option>
-            <option value="earnings">Sort by payout</option>
+            <option value="earnings">Sort by owed</option>
+            <option value="paid">Sort by paid</option>
+            <option value="balance">Sort by balance due</option>
             <option value="today">Sort by today orders</option>
             <option value="kg">Sort by kg today</option>
             <option value="errors">Sort by QC errors</option>
@@ -117,24 +121,22 @@ export default function AdminPerformancePage() {
                       {level.name?.replace(' Packer', '') || 'Bronze'}
                     </span>
                   </div>
-                  <div className="grid grid-cols-4 gap-2 text-center text-xs">
+                  <div className="grid grid-cols-2 gap-2 text-center text-xs">
                     <div className="bg-gray-50 rounded-lg p-2">
-                      <p className="font-bold text-gray-900">{p.total_points ?? 0}</p>
-                      <p className="text-gray-400">Points</p>
+                      <p className="font-bold text-gray-900">{p.total_points ?? 0} pts</p>
+                      <p className="text-gray-400">Level: {level.name?.replace(' Packer', '') || 'Bronze'}</p>
                     </div>
                     <div className="bg-gray-50 rounded-lg p-2">
                       <p className="font-bold text-green-700">₹{p.estimated_earnings ?? 0}</p>
-                      <p className="text-gray-400">Payout</p>
+                      <p className="text-gray-400">Owed</p>
                     </div>
                     <div className="bg-gray-50 rounded-lg p-2">
-                      <p className="font-bold">{p.today?.orders_packed ?? 0}</p>
-                      <p className="text-gray-400">Today</p>
+                      <p className="font-bold">₹{p.payments?.total_paid ?? 0}</p>
+                      <p className="text-gray-400">Paid</p>
                     </div>
                     <div className="bg-gray-50 rounded-lg p-2">
-                      <p className={`font-bold ${(p.qc_errors?.length || 0) > 0 ? 'text-red-600' : ''}`}>
-                        {p.qc_errors?.length ?? 0}
-                      </p>
-                      <p className="text-gray-400">QC</p>
+                      <p className="font-bold text-amber-700">₹{p.payments?.balance_due ?? 0}</p>
+                      <p className="text-gray-400">Balance</p>
                     </div>
                   </div>
                 </button>
@@ -155,7 +157,9 @@ export default function AdminPerformancePage() {
                   <th className="p-3 text-right font-semibold text-gray-700">Today</th>
                   <th className="p-3 text-right font-semibold text-gray-700">Kg today</th>
                   <th className="p-3 text-right font-semibold text-gray-700">QC ({periodLabel})</th>
-                  <th className="p-3 text-right font-semibold text-gray-700">Est. payout</th>
+                  <th className="p-3 text-right font-semibold text-gray-700">Owed</th>
+                  <th className="p-3 text-right font-semibold text-gray-700">Paid</th>
+                  <th className="p-3 text-right font-semibold text-gray-700">Balance</th>
                   <th className="p-3 text-right font-semibold text-gray-700">Actions</th>
                 </tr>
               </thead>
@@ -192,8 +196,15 @@ export default function AdminPerformancePage() {
                         </span>
                       </td>
                       <td className="p-3 text-right">
-                        <p className="font-semibold text-green-700">₹{p.estimated_earnings ?? 0}</p>
-                        <p className="text-[10px] text-gray-400">@ ₹{RUPEES_PER_POINT}/pt</p>
+                        <p className="font-semibold text-gray-800">₹{p.estimated_earnings ?? 0}</p>
+                      </td>
+                      <td className="p-3 text-right font-medium text-green-700">
+                        ₹{p.payments?.total_paid ?? 0}
+                      </td>
+                      <td className="p-3 text-right">
+                        <p className={`font-semibold ${(p.payments?.balance_due || 0) > 0 ? 'text-amber-700' : 'text-gray-400'}`}>
+                          ₹{p.payments?.balance_due ?? 0}
+                        </p>
                       </td>
                       <td className="p-3 text-right">
                         <button

@@ -94,33 +94,33 @@ export default function LiveDashboard() {
 
   return (
     <div>
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-4 md:mb-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-3 mb-4 md:mb-5">
         <StatCard label="Today's Total" value={stats.total} sub={`${stats.totalKg} kg`} />
         <StatCard label="Packed" value={stats.packed} accent="green" />
         <StatCard label="In Progress" value={stats.inProgress} accent="yellow" />
         <StatCard label="Pending" value={stats.pending} accent="gray" />
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-6 md:mb-8">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-3 mb-4">
         <StatCard
-          label="Team est. payout"
+          label="Team owed"
           value={`₹${teamSummary.totalEarnings.toLocaleString()}`}
-          sub="All active packers"
+          sub="From points earned"
+        />
+        <StatCard
+          label="Team paid"
+          value={`₹${teamSummary.totalPaid.toLocaleString()}`}
+          sub={`Due ₹${teamSummary.balanceDue.toLocaleString()}`}
           accent="green"
         />
         <StatCard
           label="Packed today"
           value={teamSummary.ordersToday}
           sub={`${teamSummary.kgToday.toFixed(1)} kg`}
-        />
-        <StatCard
-          label="QC errors (7d)"
-          value={teamSummary.qcErrors}
-          sub={`−${teamSummary.periodLost} pts`}
-          accent="gray"
+          accent="yellow"
         />
         <Link href="/admin/performance" className="block">
-          <StatCard label="Performance" value="View →" sub="Payroll & gamification" accent="yellow" />
+          <StatCard label="Payroll" value="Open →" sub="Stats & payments" accent="gray" />
         </Link>
       </div>
 

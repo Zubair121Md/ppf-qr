@@ -124,6 +124,20 @@ CREATE INDEX IF NOT EXISTS idx_points_worker ON worker_points_ledger(worker_id);
 CREATE INDEX IF NOT EXISTS idx_points_order ON worker_points_ledger(order_id);
 CREATE INDEX IF NOT EXISTS idx_points_reason ON worker_points_ledger(reason);
 
+CREATE TABLE IF NOT EXISTS worker_payments (
+  id            SERIAL PRIMARY KEY,
+  worker_id     TEXT NOT NULL REFERENCES workers(worker_id),
+  amount        NUMERIC NOT NULL CHECK (amount > 0),
+  payment_type  TEXT NOT NULL DEFAULT 'salary',
+  bonus_points  INTEGER DEFAULT 0,
+  note          TEXT,
+  recorded_by   TEXT REFERENCES workers(worker_id),
+  paid_at       TIMESTAMPTZ DEFAULT now(),
+  created_at    TIMESTAMPTZ DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_payments_worker ON worker_payments(worker_id);
+CREATE INDEX IF NOT EXISTS idx_payments_date ON worker_payments(paid_at);
+
 -- Security tables (run once on existing databases)
 ALTER TABLE workers ADD COLUMN IF NOT EXISTS last_attempt_at TIMESTAMPTZ;
 

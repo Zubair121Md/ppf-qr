@@ -12,10 +12,12 @@ export default function LogoutButton({ variant = 'worker', className = '' }) {
     setLoading(true);
     try {
       await fetch('/api/auth/logout', { method: 'POST' });
-      router.push('/worker/login');
-      router.refresh();
+    } catch {
+      // Still redirect — cookie may be cleared server-side
     } finally {
       setLoading(false);
+      router.push('/worker/login');
+      router.refresh();
     }
   }
 
