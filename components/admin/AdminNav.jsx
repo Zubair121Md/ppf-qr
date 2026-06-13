@@ -1,11 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import LogoutButton from '@/components/shared/LogoutButton';
 import Image from 'next/image';
 import { BRAND } from '@/lib/brand';
+import { ROLE_LABELS } from '@/lib/constants';
 import {
   IconDashboard, IconOrders, IconProducts, IconWorkers, IconQC,
 } from '@/components/ui/Icons';
@@ -21,9 +22,19 @@ const LINKS = [
 export default function AdminNav() {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    fetch('/api/auth/me')
+      .then((r) => (r.ok ? r.json() : null))
+      .then(setUser)
+      .catch(() => {});
+  }, []);
 
   const isActive = (href) =>
     href === '/admin' ? pathname === '/admin' : pathname.startsWith(href);
+
+  const roleLabel = user?.role ? ROLE_LABELS[user.role] || user.role : '';
 
   return (
     <>
@@ -31,7 +42,14 @@ export default function AdminNav() {
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
           <Link href="/admin" className="flex items-center gap-2.5">
             <Image src="/ppf-logo.png" alt={BRAND.name} width={36} height={36} className="rounded-full" />
-            <span className="text-lg font-bold tracking-tight">{BRAND.shortName} Admin</span>
+            <div>
+              <span className="text-lg font-bold tracking-tight block">{BRAND.shortName} Panel</span>
+              {user && (
+                <span className="text-xs text-white/70">
+                  {user.full_name} · {roleLabel}
+                </span>
+              )}
+            </div>
           </Link>
           <div className="flex items-center gap-1">
             {LINKS.map(({ href, label, Icon }) => (
@@ -55,7 +73,10 @@ export default function AdminNav() {
         <div className="px-4 py-3 flex items-center justify-between">
           <Link href="/admin" className="flex items-center gap-2">
             <Image src="/ppf-logo.png" alt={BRAND.shortName} width={32} height={32} className="rounded-full" />
-            <span className="text-lg font-bold">{BRAND.shortName}</span>
+            <div>
+              <span className="text-lg font-bold block">{BRAND.shortName}</span>
+              {user && <span className="text-[10px] text-white/70">{roleLabel}</span>}
+            </div>
           </Link>
           <div className="flex items-center gap-2">
             <LogoutButton variant="admin" />

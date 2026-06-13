@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/db';
-import { getWorkerFromRequest, requireAdmin } from '@/lib/auth';
+import { getWorkerFromRequest, requireStaff } from '@/lib/auth';
 import { calculateTotalWeightFromItems, distributeOrders } from '@/lib/distribute';
 
 async function getProductsMap() {
@@ -44,7 +44,7 @@ export async function GET(request) {
       query = query.gte('created_at', `${today}T00:00:00`);
     }
     query = query.or(`assigned_worker_id.eq.${worker.worker_id},and(assignment_type.eq.overflow,assigned_worker_id.is.null)`);
-  } else if (!requireAdmin(worker)) {
+  } else if (!requireStaff(worker)) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
@@ -59,7 +59,7 @@ export async function GET(request) {
 
 export async function POST(request) {
   const worker = await getWorkerFromRequest(request);
-  if (!requireAdmin(worker)) {
+  if (!requireStaff(worker)) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 

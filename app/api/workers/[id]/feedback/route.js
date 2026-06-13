@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/db';
-import { getWorkerFromRequest } from '@/lib/auth';
+import { getWorkerFromRequest, isStaffRole } from '@/lib/auth';
 
 export async function GET(request, { params }) {
   const worker = await getWorkerFromRequest(request);
@@ -8,7 +8,7 @@ export async function GET(request, { params }) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  if (worker.worker_id !== params.id && worker.role !== 'admin') {
+  if (worker.worker_id !== params.id && !isStaffRole(worker.role)) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 

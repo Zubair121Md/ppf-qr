@@ -6,6 +6,7 @@ import { LANG_LABELS, getMessage, setWorkerLang, getWorkerLang, syncWorkerLangFr
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import PPFLogo from '@/components/shared/PPFLogo';
+import { STAFF_ROLES } from '@/lib/constants';
 import { fetchWithRetry } from '@/lib/fetch-retry';
 
 const LANGS = ['tamil', 'malayalam', 'hindi', 'english'];
@@ -47,7 +48,7 @@ export default function WorkerLoginPage() {
         return;
       }
 
-      if (data.role === 'admin') {
+      if (STAFF_ROLES.includes(data.role)) {
         router.push('/admin');
       } else {
         if (data.preferred_lang) {

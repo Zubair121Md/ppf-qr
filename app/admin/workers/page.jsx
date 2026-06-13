@@ -5,6 +5,7 @@ import AdminShell from '@/components/layouts/AdminShell';
 import Button from '@/components/ui/Button';
 import Badge from '@/components/ui/Badge';
 import WorkerFormModal from '@/components/admin/WorkerFormModal';
+import { ROLE_LABELS } from '@/lib/constants';
 import { LANG_LABELS } from '@/lib/speech';
 
 export default function AdminWorkersPage() {
@@ -13,6 +14,7 @@ export default function AdminWorkersPage() {
   const [showForm, setShowForm] = useState(false);
   const [editingWorker, setEditingWorker] = useState(null);
   const [confirmAction, setConfirmAction] = useState(null);
+  const [currentUser, setCurrentUser] = useState(null);
 
   const loadWorkers = useCallback(async () => {
     try {
@@ -25,6 +27,10 @@ export default function AdminWorkersPage() {
 
   useEffect(() => {
     loadWorkers();
+    fetch('/api/auth/me')
+      .then((r) => (r.ok ? r.json() : null))
+      .then(setCurrentUser)
+      .catch(() => {});
   }, [loadWorkers]);
 
   function openAdd() {
@@ -84,7 +90,7 @@ export default function AdminWorkersPage() {
                 </div>
                 <div className="grid grid-cols-2 gap-2 text-sm text-gray-600 mb-4">
                   <span>Language: {langLabel(w.preferred_lang)}</span>
-                  <span className="capitalize">Role: {w.role}</span>
+                  <span>Role: {ROLE_LABELS[w.role] || w.role}</span>
                   <span className="col-span-2 text-xs text-gray-400">
                     Last login: {w.last_login_at ? new Date(w.last_login_at).toLocaleString() : 'Never'}
                   </span>
@@ -128,7 +134,7 @@ export default function AdminWorkersPage() {
                     <td className="p-3">{w.username}</td>
                     <td className="p-3 font-medium">{w.full_name}</td>
                     <td className="p-3">{langLabel(w.preferred_lang)}</td>
-                    <td className="p-3 capitalize">{w.role}</td>
+                    <td className="p-3">{ROLE_LABELS[w.role] || w.role}</td>
                     <td className="p-3">
                       <Badge status={w.is_active ? 'PACKED' : 'ERROR'}>
                         {w.is_active ? 'Active' : 'Inactive'}
@@ -168,6 +174,7 @@ export default function AdminWorkersPage() {
       {showForm && (
         <WorkerFormModal
           worker={editingWorker}
+          currentUserRole={currentUser?.role}
           onClose={() => { setShowForm(false); setEditingWorker(null); }}
           onSaved={loadWorkers}
         />

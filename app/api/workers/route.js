@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/db';
-import { getWorkerFromRequest, requireAdmin, hashPassword } from '@/lib/auth';
+import { getWorkerFromRequest, requireStaff, requireAdmin, hashPassword } from '@/lib/auth';
 
 export async function GET(request) {
   const worker = await getWorkerFromRequest(request);
-  if (!requireAdmin(worker)) {
+  if (!requireStaff(worker)) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
@@ -22,12 +22,17 @@ export async function GET(request) {
 
 export async function POST(request) {
   const worker = await getWorkerFromRequest(request);
-  if (!requireAdmin(worker)) {
+  if (!requireStaff(worker)) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
   const body = await request.json();
   const { worker_id, username, password, full_name, preferred_lang, role } = body;
+
+  const newRole = role || 'worker';
+  if (['manager', 'admin'].includes(newRole) && !requireAdmin(worker)) {
+    return NextResponse.json({ error: 'Only admins can create manager or admin accounts' }, { status: 403 });
+  }
 
   const password_hash = await hashPassword(password);
 

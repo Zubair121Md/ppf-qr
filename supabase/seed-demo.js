@@ -68,6 +68,7 @@ async function cleanupDemo() {
 
 async function seedAccounts() {
   const workerPassword = await bcrypt.hash('farmscan123', 10);
+  const managerPassword = await bcrypt.hash('manager123', 10);
   const adminPassword = await bcrypt.hash('admin123', 10);
 
   console.log('Seeding workers...');
@@ -76,16 +77,45 @@ async function seedAccounts() {
     console.log(`  ✓ ${w.username} (${w.full_name})`);
   }
 
+  const { data: legacyAdmin } = await supabase
+    .from('workers')
+    .select('worker_id')
+    .eq('worker_id', 'WRK-ADMIN')
+    .maybeSingle();
+
+  if (legacyAdmin) {
+    await supabase.from('workers').update({
+      username: 'manager',
+      password_hash: managerPassword,
+      full_name: 'Floor Manager',
+      preferred_lang: 'english',
+      role: 'manager',
+      is_active: true,
+    }).eq('worker_id', 'WRK-ADMIN');
+    console.log('  ✓ manager (migrated from legacy admin account)');
+  } else {
+    await supabase.from('workers').upsert({
+      worker_id: 'WRK-MGR',
+      username: 'manager',
+      password_hash: managerPassword,
+      full_name: 'Floor Manager',
+      preferred_lang: 'english',
+      role: 'manager',
+      is_active: true,
+    });
+    console.log('  ✓ manager (Floor Manager)');
+  }
+
   await supabase.from('workers').upsert({
-    worker_id: 'WRK-ADMIN',
+    worker_id: 'WRK-ADM',
     username: 'admin',
     password_hash: adminPassword,
-    full_name: 'Supervisor Admin',
+    full_name: 'System Admin',
     preferred_lang: 'english',
     role: 'admin',
     is_active: true,
   });
-  console.log('  ✓ admin (Supervisor Admin)');
+  console.log('  ✓ admin (System Admin)');
 
   console.log('Seeding products...');
   for (const p of PRODUCTS) {
@@ -311,7 +341,11 @@ async function main() {
   console.log('  DEMO SEED COMPLETE — TEST CREDENTIALS');
   console.log('══════════════════════════════════════════');
   console.log('');
-  console.log('  ADMIN (full dashboard):');
+  console.log('  MANAGER (day-to-day operations):');
+  console.log('    Username: manager');
+  console.log('    Password: manager123');
+  console.log('');
+  console.log('  ADMIN (full system access):');
   console.log('    Username: admin');
   console.log('    Password: admin123');
   console.log('');

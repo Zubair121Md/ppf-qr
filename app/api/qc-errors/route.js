@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/db';
-import { getWorkerFromRequest, requireAdmin } from '@/lib/auth';
+import { getWorkerFromRequest, requireStaff } from '@/lib/auth';
 
 export async function GET(request) {
   const worker = await getWorkerFromRequest(request);
-  if (!requireAdmin(worker)) {
+  if (!requireStaff(worker)) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
@@ -37,7 +37,7 @@ export async function GET(request) {
 
 export async function POST(request) {
   const worker = await getWorkerFromRequest(request);
-  if (!requireAdmin(worker)) {
+  if (!requireStaff(worker)) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 

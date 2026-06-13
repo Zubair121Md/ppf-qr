@@ -11,6 +11,7 @@ import Spinner from '@/components/ui/Spinner';
 import { IconRefresh } from '@/components/ui/Icons';
 import { fetchWithRetry } from '@/lib/fetch-retry';
 import { getWorkerLang, syncWorkerLangFromProfile } from '@/lib/speech';
+import { STAFF_ROLES } from '@/lib/constants';
 
 export default function WorkerOrdersPage() {
   const router = useRouter();
@@ -46,7 +47,7 @@ export default function WorkerOrdersPage() {
         }
         const me = await meRes.json();
 
-        if (me.role === 'admin') {
+        if (STAFF_ROLES.includes(me.role)) {
           router.replace('/admin');
           return;
         }

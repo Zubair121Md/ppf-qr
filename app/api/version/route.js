@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 
-const BUILD_VERSION = 'ppf-v3-qr-scan-fix';
+const BUILD_VERSION = 'ppf-v4-unpack-roles';
 
 export async function GET() {
   return NextResponse.json({

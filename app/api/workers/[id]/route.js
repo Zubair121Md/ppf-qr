@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/db';
-import { getWorkerFromRequest, requireAdmin, hashPassword } from '@/lib/auth';
+import { getWorkerFromRequest, requireStaff, requireAdmin, hashPassword } from '@/lib/auth';
 
 export async function GET(request, { params }) {
   const worker = await getWorkerFromRequest(request);
-  if (!requireAdmin(worker)) {
+  if (!requireStaff(worker)) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
@@ -23,13 +23,17 @@ export async function GET(request, { params }) {
 
 export async function PATCH(request, { params }) {
   const worker = await getWorkerFromRequest(request);
-  if (!requireAdmin(worker)) {
+  if (!requireStaff(worker)) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
   const body = await request.json();
   const updates = { ...body };
   delete updates.worker_id;
+
+  if (updates.role && ['manager', 'admin'].includes(updates.role) && !requireAdmin(worker)) {
+    return NextResponse.json({ error: 'Only admins can assign manager or admin roles' }, { status: 403 });
+  }
 
   if (updates.password) {
     updates.password_hash = await hashPassword(updates.password);

@@ -2,6 +2,11 @@ import { NextResponse } from 'next/server';
 import { verifyTokenEdge } from './lib/jwt-edge';
 
 const PUBLIC_PATHS = ['/worker/login', '/p'];
+const STAFF_ROLES = ['manager', 'admin'];
+
+function isStaff(user) {
+  return user && STAFF_ROLES.includes(user.role);
+}
 
 function isPublicPath(pathname) {
   if (PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`))) {
@@ -22,7 +27,7 @@ export function middleware(request) {
   const user = token ? verifyTokenEdge(token) : null;
 
   if (pathname.startsWith('/admin')) {
-    if (!user || user.role !== 'admin') {
+    if (!isStaff(user)) {
       return NextResponse.redirect(new URL('/worker/login', request.url));
     }
     return NextResponse.next();
@@ -32,14 +37,14 @@ export function middleware(request) {
     if (!user) {
       return NextResponse.redirect(new URL('/worker/login', request.url));
     }
-    if (user.role === 'admin') {
+    if (isStaff(user)) {
       return NextResponse.redirect(new URL('/admin', request.url));
     }
     return NextResponse.next();
   }
 
   if (pathname.startsWith('/api/admin')) {
-    if (!user || user.role !== 'admin') {
+    if (!isStaff(user)) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
   }

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import AdminShell from '@/components/layouts/AdminShell';
 import OrderImport from '@/components/admin/OrderImport';
 import Badge from '@/components/ui/Badge';
+import Button from '@/components/ui/Button';
 
 function packedProgress(order) {
   const items = order.order_items || [];
@@ -12,11 +13,17 @@ function packedProgress(order) {
   return `${packed}/${items.length}`;
 }
 
+function canUnpack(order) {
+  return ['PACKED', 'PACKING', 'ERROR'].includes(order.status);
+}
+
 export default function AdminOrdersPage() {
   const [orders, setOrders] = useState([]);
   const [workers, setWorkers] = useState({});
   const [loading, setLoading] = useState(true);
   const [showImport, setShowImport] = useState(false);
+  const [unpackTarget, setUnpackTarget] = useState(null);
+  const [unpacking, setUnpacking] = useState(false);
 
   async function loadOrders() {
     const [ordersRes, workersRes] = await Promise.all([
@@ -36,6 +43,19 @@ export default function AdminOrdersPage() {
   useEffect(() => {
     loadOrders();
   }, []);
+
+  async function handleUnpack(orderId) {
+    setUnpacking(true);
+    try {
+      const res = await fetch(`/api/orders/${orderId}/unpack`, { method: 'PATCH' });
+      if (res.ok) {
+        setUnpackTarget(null);
+        await loadOrders();
+      }
+    } finally {
+      setUnpacking(false);
+    }
+  }
 
   const todayOrders = orders.filter((o) => {
     const d = new Date(o.created_at).toDateString();
@@ -106,7 +126,7 @@ export default function AdminOrdersPage() {
                       </div>
                       <Badge status={o.status}>{o.status}</Badge>
                     </div>
-                    <div className="grid grid-cols-2 gap-2 text-sm text-gray-600">
+                    <div className="grid grid-cols-2 gap-2 text-sm text-gray-600 mb-3">
                       <span>{o.total_weight_kg} kg</span>
                       <span>Items: {packedProgress(o)}</span>
                       <span className="col-span-2">
@@ -121,12 +141,22 @@ export default function AdminOrdersPage() {
                         {new Date(o.created_at).toLocaleString()}
                       </span>
                     </div>
+                    {canUnpack(o) && (
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        fullWidth
+                        onClick={() => setUnpackTarget(o)}
+                      >
+                        Unpack order
+                      </Button>
+                    )}
                   </div>
                 ))}
               </div>
 
               <div className="hidden md:block bg-surface-card rounded-2xl border border-gray-100 overflow-hidden shadow-card admin-table-wrap">
-                <table className="w-full text-sm min-w-[900px]">
+                <table className="w-full text-sm min-w-[980px]">
                   <thead className="bg-surface-muted">
                     <tr>
                       <th className="p-3 text-left font-semibold text-gray-700">Order ID</th>
@@ -136,6 +166,7 @@ export default function AdminOrdersPage() {
                       <th className="p-3 text-left font-semibold text-gray-700">Worker</th>
                       <th className="p-3 text-left font-semibold text-gray-700">Progress</th>
                       <th className="p-3 text-left font-semibold text-gray-700">Date</th>
+                      <th className="p-3 text-left font-semibold text-gray-700">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -158,6 +189,19 @@ export default function AdminOrdersPage() {
                         <td className="p-3 text-gray-500 text-xs">
                           {new Date(o.created_at).toLocaleString()}
                         </td>
+                        <td className="p-3">
+                          {canUnpack(o) ? (
+                            <button
+                              type="button"
+                              onClick={() => setUnpackTarget(o)}
+                              className="text-amber-700 text-sm font-medium hover:underline"
+                            >
+                              Unpack
+                            </button>
+                          ) : (
+                            <span className="text-gray-300 text-sm">—</span>
+                          )}
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -167,6 +211,34 @@ export default function AdminOrdersPage() {
           )}
         </div>
       </div>
+
+      {unpackTarget && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 safe-top safe-bottom safe-x p-4">
+          <div className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-sheet">
+            <h3 className="font-bold text-lg mb-2">Unpack this order?</h3>
+            <p className="text-gray-600 text-sm mb-1 font-mono">{unpackTarget.order_id}</p>
+            <p className="text-gray-600 text-sm mb-6">
+              {unpackTarget.customer_name} · {unpackTarget.total_weight_kg} kg
+            </p>
+            <p className="text-sm text-amber-800 bg-amber-50 border border-amber-100 rounded-xl px-4 py-3 mb-6">
+              All packed items will be reset. The order returns to assigned status so the worker can pack it again.
+            </p>
+            <div className="flex gap-2">
+              <Button variant="secondary" fullWidth onClick={() => setUnpackTarget(null)}>
+                Cancel
+              </Button>
+              <Button
+                variant="danger"
+                fullWidth
+                disabled={unpacking}
+                onClick={() => handleUnpack(unpackTarget.order_id)}
+              >
+                {unpacking ? 'Unpacking...' : 'Confirm unpack'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </AdminShell>
   );
 }

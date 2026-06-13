@@ -92,6 +92,7 @@ async function seed() {
   }
 
   const workerPassword = await bcrypt.hash('farmscan123', 10);
+  const managerPassword = await bcrypt.hash('manager123', 10);
   const adminPassword = await bcrypt.hash('admin123', 10);
 
   console.log('Seeding workers...');
@@ -106,11 +107,23 @@ async function seed() {
     else console.log(`  ✓ ${w.username}`);
   }
 
+  const { error: mgrError } = await supabase.from('workers').upsert({
+    worker_id: 'WRK-MGR',
+    username: 'manager',
+    password_hash: managerPassword,
+    full_name: 'Floor Manager',
+    preferred_lang: 'english',
+    role: 'manager',
+    is_active: true,
+  });
+  if (mgrError) console.error('Manager:', mgrError.message);
+  else console.log('  ✓ manager');
+
   const { error: adminError } = await supabase.from('workers').upsert({
-    worker_id: 'WRK-ADMIN',
+    worker_id: 'WRK-ADM',
     username: 'admin',
     password_hash: adminPassword,
-    full_name: 'Admin User',
+    full_name: 'System Admin',
     preferred_lang: 'english',
     role: 'admin',
     is_active: true,
@@ -131,6 +144,7 @@ async function seed() {
 
   console.log('\nSeed complete!');
   console.log('Worker logins: l1–l10 / farmscan123');
+  console.log('Manager login: manager / manager123');
   console.log('Admin login: admin / admin123');
 }
 

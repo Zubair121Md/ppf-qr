@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
-import { getWorkerFromCookies } from '@/lib/auth';
+import { getWorkerFromCookies, isStaffRole } from '@/lib/auth';
 
 export default async function WorkerHome() {
   const worker = await getWorkerFromCookies();
@@ -8,7 +8,7 @@ export default async function WorkerHome() {
     redirect('/worker/login');
   }
 
-  if (worker.role === 'admin') {
+  if (isStaffRole(worker.role)) {
     redirect('/admin');
   }
 

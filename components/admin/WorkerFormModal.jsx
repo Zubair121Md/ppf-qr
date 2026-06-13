@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
-import { LANGUAGES } from '@/lib/constants';
+import { LANGUAGES, ROLE_LABELS } from '@/lib/constants';
 import { LANG_LABELS } from '@/lib/speech';
 
 const EMPTY_FORM = {
@@ -15,8 +15,9 @@ const EMPTY_FORM = {
   role: 'worker',
 };
 
-export default function WorkerFormModal({ worker, onClose, onSaved }) {
+export default function WorkerFormModal({ worker, currentUserRole, onClose, onSaved }) {
   const isEdit = Boolean(worker);
+  const canAssignStaffRoles = currentUserRole === 'admin';
   const [form, setForm] = useState(
     worker
       ? {
@@ -153,9 +154,17 @@ export default function WorkerFormModal({ worker, onClose, onSaved }) {
             onChange={(e) => update('role', e.target.value)}
             className="w-full h-touch px-4 rounded-2xl border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-farm-green"
           >
-            <option value="worker">Worker</option>
-            <option value="admin">Admin</option>
+            <option value="worker">{ROLE_LABELS.worker}</option>
+            {canAssignStaffRoles && (
+              <>
+                <option value="manager">{ROLE_LABELS.manager}</option>
+                <option value="admin">{ROLE_LABELS.admin}</option>
+              </>
+            )}
           </select>
+          {!canAssignStaffRoles && (
+            <p className="text-xs text-gray-500">Only admins can create manager or admin accounts.</p>
+          )}
         </div>
 
         {error && (
