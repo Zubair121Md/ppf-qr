@@ -109,6 +109,21 @@ CREATE INDEX idx_packing_log_worker ON packing_log(worker_id);
 CREATE INDEX idx_qc_errors_worker ON qc_errors(worker_id);
 CREATE INDEX idx_qc_errors_unacked ON qc_errors(worker_id) WHERE acknowledged_at IS NULL;
 
+CREATE TABLE IF NOT EXISTS worker_points_ledger (
+  id          SERIAL PRIMARY KEY,
+  worker_id   TEXT NOT NULL REFERENCES workers(worker_id),
+  points      INTEGER NOT NULL,
+  reason      TEXT NOT NULL,
+  order_id    TEXT REFERENCES orders(order_id),
+  ref_type    TEXT,
+  ref_id      TEXT,
+  note        TEXT,
+  created_at  TIMESTAMPTZ DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_points_worker ON worker_points_ledger(worker_id);
+CREATE INDEX IF NOT EXISTS idx_points_order ON worker_points_ledger(order_id);
+CREATE INDEX IF NOT EXISTS idx_points_reason ON worker_points_ledger(reason);
+
 -- Security tables (run once on existing databases)
 ALTER TABLE workers ADD COLUMN IF NOT EXISTS last_attempt_at TIMESTAMPTZ;
 

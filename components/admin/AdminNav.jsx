@@ -8,7 +8,7 @@ import Image from 'next/image';
 import { BRAND } from '@/lib/brand';
 import { ROLE_LABELS } from '@/lib/constants';
 import {
-  IconDashboard, IconOrders, IconProducts, IconWorkers, IconQC,
+  IconDashboard, IconOrders, IconProducts, IconWorkers, IconQC, IconStats,
 } from '@/components/ui/Icons';
 
 const LINKS = [
@@ -16,6 +16,7 @@ const LINKS = [
   { href: '/admin/orders', label: 'Orders', Icon: IconOrders, short: 'Orders' },
   { href: '/admin/products', label: 'Products', Icon: IconProducts, short: 'Products' },
   { href: '/admin/workers', label: 'Workers', Icon: IconWorkers, short: 'Workers' },
+  { href: '/admin/performance', label: 'Performance', Icon: IconStats, short: 'Stats' },
   { href: '/admin/qc', label: 'QC', Icon: IconQC, short: 'QC' },
 ];
 
@@ -115,7 +116,7 @@ export default function AdminNav() {
       </nav>
 
       <div className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-white border-t border-gray-200 safe-bottom safe-x shadow-[0_-2px_10px_rgba(0,0,0,0.06)]">
-        <div className="grid grid-cols-5">
+        <div className="grid grid-cols-6">
           {LINKS.map(({ href, short, Icon }) => (
             <Link
               key={href}

@@ -1,4 +1,5 @@
 import ErrorBoundary from '@/components/shared/ErrorBoundary';
+import WorkerNavWrapper from '@/components/worker/WorkerNavWrapper';
 import { BRAND } from '@/lib/brand';
 
 export const metadata = {
@@ -22,5 +23,10 @@ export const viewport = {
 };
 
 export default function WorkerLayout({ children }) {
-  return <ErrorBoundary>{children}</ErrorBoundary>;
+  return (
+    <ErrorBoundary>
+      {children}
+      <WorkerNavWrapper />
+    </ErrorBoundary>
+  );
 }

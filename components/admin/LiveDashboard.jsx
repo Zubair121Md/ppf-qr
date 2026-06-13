@@ -1,7 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import WorkerCard from './WorkerCard';
+import { computeTeamSummary } from './WorkerPerformanceSummary';
 
 function StatCard({ label, value, sub, accent }) {
   const accents = {
@@ -21,20 +23,19 @@ function StatCard({ label, value, sub, accent }) {
 }
 
 export default function LiveDashboard() {
-  const [workers, setWorkers] = useState([]);
+  const [performance, setPerformance] = useState([]);
   const [orders, setOrders] = useState([]);
 
   async function fetchData() {
     const today = new Date().toISOString().split('T')[0];
 
-    const [workersRes, ordersRes] = await Promise.all([
-      fetch('/api/workers'),
+    const [perfRes, ordersRes] = await Promise.all([
+      fetch('/api/workers/performance'),
       fetch('/api/orders'),
     ]);
 
-    if (workersRes.ok) {
-      const w = await workersRes.json();
-      setWorkers(w.filter((x) => x.role === 'worker'));
+    if (perfRes.ok) {
+      setPerformance(await perfRes.json());
     }
 
     if (ordersRes.ok) {
@@ -69,6 +70,8 @@ export default function LiveDashboard() {
       .filter((o) => o.status === 'PACKED')
       .reduce((s, o) => s + Number(o.total_weight_kg || 0), 0);
 
+    const perf = performance.find((p) => p.worker_id === workerId)?.performance;
+
     let status = 'IDLE';
     if (packing) status = 'PACKING';
     else if (packedToday > 0) status = 'DONE';
@@ -79,22 +82,56 @@ export default function LiveDashboard() {
       packedToday,
       assignedKg,
       packedKg,
-      errorsThisWeek: 0,
+      errorsThisWeek: perf?.qc_errors?.length || 0,
+      totalPoints: perf?.total_points || 0,
+      levelName: perf?.level?.name || 'Bronze Packer',
+      levelColor: perf?.level?.color || '#CD7F32',
+      estimatedEarnings: perf?.estimated_earnings || 0,
     };
   }
 
+  const teamSummary = computeTeamSummary(performance);
+
   return (
     <div>
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-6 md:mb-8">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-4 md:mb-6">
         <StatCard label="Today's Total" value={stats.total} sub={`${stats.totalKg} kg`} />
         <StatCard label="Packed" value={stats.packed} accent="green" />
         <StatCard label="In Progress" value={stats.inProgress} accent="yellow" />
         <StatCard label="Pending" value={stats.pending} accent="gray" />
       </div>
 
-      <h2 className="text-base font-semibold text-gray-700 mb-3">Workers</h2>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-6 md:mb-8">
+        <StatCard
+          label="Team est. payout"
+          value={`₹${teamSummary.totalEarnings.toLocaleString()}`}
+          sub="All active packers"
+          accent="green"
+        />
+        <StatCard
+          label="Packed today"
+          value={teamSummary.ordersToday}
+          sub={`${teamSummary.kgToday.toFixed(1)} kg`}
+        />
+        <StatCard
+          label="QC errors (7d)"
+          value={teamSummary.qcErrors}
+          sub={`−${teamSummary.periodLost} pts`}
+          accent="gray"
+        />
+        <Link href="/admin/performance" className="block">
+          <StatCard label="Performance" value="View →" sub="Payroll & gamification" accent="yellow" />
+        </Link>
+      </div>
+
+      <div className="flex items-center justify-between mb-3">
+        <h2 className="text-base font-semibold text-gray-700">Workers</h2>
+        <Link href="/admin/performance" className="text-sm text-ppf-purple font-medium hover:underline">
+          Full report
+        </Link>
+      </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
-        {workers.map((w) => (
+        {performance.map((w) => (
           <WorkerCard key={w.worker_id} worker={w} stats={getWorkerStats(w.worker_id)} />
         ))}
       </div>

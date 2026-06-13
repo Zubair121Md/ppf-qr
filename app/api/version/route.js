@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 
-const BUILD_VERSION = 'ppf-v7-unpack-repack-fix';
+const BUILD_VERSION = 'ppf-v9-worker-payroll-admin';
 
 export async function GET() {
   return NextResponse.json({

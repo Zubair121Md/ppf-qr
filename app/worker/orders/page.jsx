@@ -22,6 +22,7 @@ export default function WorkerOrdersPage() {
   const [feedbackErrors, setFeedbackErrors] = useState([]);
   const [showFeedback, setShowFeedback] = useState(false);
   const [worker, setWorker] = useState(null);
+  const [quickStats, setQuickStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const lang = getWorkerLang();
@@ -67,6 +68,9 @@ export default function WorkerOrdersPage() {
         }
 
         await loadOrders(me);
+
+        const statsRes = await fetch('/api/workers/me/stats?days=7');
+        if (statsRes.ok) setQuickStats(await statsRes.json());
       } finally {
         setLoading(false);
       }
@@ -126,6 +130,23 @@ export default function WorkerOrdersPage() {
           </button>
         }
       />
+
+      {quickStats && (
+        <div className="mx-4 -mt-2 mb-4 grid grid-cols-3 gap-2">
+          <div className="bg-white rounded-xl border p-3 text-center shadow-sm">
+            <p className="text-lg font-bold text-ppf-purple">{quickStats.today?.orders_packed ?? 0}</p>
+            <p className="text-[10px] text-gray-500 uppercase">Done today</p>
+          </div>
+          <div className="bg-white rounded-xl border p-3 text-center shadow-sm">
+            <p className="text-lg font-bold text-farm-green">{quickStats.total_points ?? 0}</p>
+            <p className="text-[10px] text-gray-500 uppercase">Points</p>
+          </div>
+          <div className="bg-white rounded-xl border p-3 text-center shadow-sm">
+            <p className="text-lg font-bold text-gray-800">₹{quickStats.estimated_earnings ?? 0}</p>
+            <p className="text-[10px] text-gray-500 uppercase">Earnings</p>
+          </div>
+        </div>
+      )}
 
       <div className="worker-content space-y-6">
         <section>

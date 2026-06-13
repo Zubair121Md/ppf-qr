@@ -19,6 +19,9 @@ export default function AdminDashboard() {
             <Button size="sm" variant="primary">Import Orders</Button>
           </Link>
           <Button size="sm" variant="danger" onClick={() => setShowQC(true)}>Log QC Error</Button>
+          <Link href="/admin/performance">
+            <Button size="sm" variant="secondary">Performance</Button>
+          </Link>
           <Link href="/admin/qc">
             <Button size="sm" variant="secondary">Full Report</Button>
           </Link>

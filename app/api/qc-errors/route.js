@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/db';
 import { getWorkerFromRequest, requireStaff } from '@/lib/auth';
+import { POINTS_QC_ERROR } from '@/lib/gamification';
+import { awardPoints } from '@/lib/worker-stats';
 
 export async function GET(request) {
   const worker = await getWorkerFromRequest(request);
@@ -105,6 +107,16 @@ export async function POST(request) {
       error_count: 1,
     });
   }
+
+  await awardPoints({
+    workerId: order.packed_by,
+    points: POINTS_QC_ERROR,
+    reason: 'QC_ERROR',
+    orderId: order_id,
+    refType: 'qc_error',
+    refId: data.error_id,
+    note: `${error_code}: ${error_note}`,
+  });
 
   return NextResponse.json(data, { status: 201 });
 }

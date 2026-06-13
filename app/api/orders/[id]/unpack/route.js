@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/db';
 import { getWorkerFromRequest, requireStaff } from '@/lib/auth';
 import { resetOrderItemsForUnpack, syncOrderStatusFromItems } from '@/lib/order-sync';
+import { awardPoints, hasLedgerEntry } from '@/lib/worker-stats';
 
 export async function PATCH(request, { params }) {
   const worker = await getWorkerFromRequest(request);
@@ -13,7 +14,7 @@ export async function PATCH(request, { params }) {
 
   const { data: order, error: orderError } = await supabaseAdmin
     .from('orders')
-    .select('order_id, status, assigned_worker_id')
+    .select('order_id, status, assigned_worker_id, packed_by')
     .eq('order_id', orderId)
     .single();
 
@@ -59,6 +60,32 @@ export async function PATCH(request, { params }) {
     worker_id: worker.worker_id,
     action: 'UNPACK_ORDER',
   });
+
+  if (order.packed_by) {
+    const { data: earned } = await supabaseAdmin
+      .from('worker_points_ledger')
+      .select('points')
+      .eq('worker_id', order.packed_by)
+      .eq('order_id', orderId)
+      .eq('reason', 'ORDER_COMPLETE')
+      .maybeSingle();
+
+    const reverseAlready = await hasLedgerEntry({
+      workerId: order.packed_by,
+      reason: 'ORDER_UNPACKED',
+      orderId,
+    });
+
+    if (earned?.points && !reverseAlready) {
+      await awardPoints({
+        workerId: order.packed_by,
+        points: -earned.points,
+        reason: 'ORDER_UNPACKED',
+        orderId,
+        note: 'Points reversed after unpack',
+      });
+    }
+  }
 
   return NextResponse.json({
     ok: true,

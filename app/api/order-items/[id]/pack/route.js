@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/db';
 import { getWorkerFromRequest, verifyOrderOwnership } from '@/lib/auth';
+import { calcOrderPoints } from '@/lib/gamification';
+import { awardPoints, hasLedgerEntry } from '@/lib/worker-stats';
 
 export async function PATCH(request, { params }) {
   const worker = await getWorkerFromRequest(request);
@@ -121,6 +123,23 @@ export async function PATCH(request, { params }) {
         worker_id: worker.worker_id,
         load_date: today,
         packed_kg: Number(order?.total_weight_kg || 0),
+      });
+    }
+
+    const alreadyAwarded = await hasLedgerEntry({
+      workerId: worker.worker_id,
+      reason: 'ORDER_COMPLETE',
+      orderId: item.order_id,
+    });
+
+    if (!alreadyAwarded) {
+      const pts = calcOrderPoints(order?.total_weight_kg || 0);
+      await awardPoints({
+        workerId: worker.worker_id,
+        points: pts,
+        reason: 'ORDER_COMPLETE',
+        orderId: item.order_id,
+        note: `Packed ${order?.total_weight_kg || 0} kg`,
       });
     }
   }

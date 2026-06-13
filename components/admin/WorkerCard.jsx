@@ -16,6 +16,10 @@ export default function WorkerCard({ worker, stats }) {
     assignedKg = 0,
     packedKg = 0,
     errorsThisWeek = 0,
+    totalPoints = 0,
+    levelName = 'Bronze Packer',
+    levelColor = '#CD7F32',
+    estimatedEarnings = 0,
   } = stats || {};
 
   const statusConfig = {
@@ -46,6 +50,13 @@ export default function WorkerCard({ worker, stats }) {
       </div>
 
       <p className="text-xs text-gray-400 mb-2">{LANG_LABELS[preferred_lang] || preferred_lang}</p>
+
+      <div
+        className="text-[10px] font-semibold px-2 py-1 rounded-lg mb-2 inline-block"
+        style={{ backgroundColor: `${levelColor}22`, color: levelColor }}
+      >
+        {levelName} · {totalPoints} pts · ₹{estimatedEarnings}
+      </div>
 
       <div className={`text-xs px-2.5 py-1.5 rounded-xl mb-3 font-medium ${cfg.bg}`}>
         {cfg.label}

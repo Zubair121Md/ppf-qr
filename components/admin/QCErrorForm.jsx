@@ -1,23 +1,40 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ERROR_CODES } from '@/lib/constants';
+import { POINTS_QC_ERROR } from '@/lib/gamification';
 
 export default function QCErrorForm({ orderId: presetOrderId, onSuccess, onClose }) {
+  const [packedOrders, setPackedOrders] = useState([]);
   const [orderId, setOrderId] = useState(presetOrderId || '');
-  const [orderInfo, setOrderInfo] = useState(null);
+  const [selectedOrder, setSelectedOrder] = useState(null);
   const [errorCode, setErrorCode] = useState('ERR-001');
   const [errorNote, setErrorNote] = useState('');
   const [loading, setLoading] = useState(false);
+  const [loadingOrders, setLoadingOrders] = useState(true);
   const [success, setSuccess] = useState(false);
 
-  async function lookupOrder() {
-    if (!orderId) return;
-    const res = await fetch(`/api/orders/${orderId}`);
-    if (res.ok) {
-      setOrderInfo(await res.json());
+  useEffect(() => {
+    fetch('/api/orders/packed')
+      .then((r) => (r.ok ? r.json() : []))
+      .then((orders) => {
+        setPackedOrders(orders);
+        if (presetOrderId) {
+          const match = orders.find((o) => o.order_id === presetOrderId);
+          if (match) setSelectedOrder(match);
+        }
+      })
+      .finally(() => setLoadingOrders(false));
+  }, [presetOrderId]);
+
+  useEffect(() => {
+    if (!orderId) {
+      setSelectedOrder(null);
+      return;
     }
-  }
+    const match = packedOrders.find((o) => o.order_id === orderId);
+    setSelectedOrder(match || null);
+  }, [orderId, packedOrders]);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -31,6 +48,9 @@ export default function QCErrorForm({ orderId: presetOrderId, onSuccess, onClose
       if (res.ok) {
         setSuccess(true);
         onSuccess?.();
+      } else {
+        const data = await res.json();
+        alert(data.error || 'Could not log error');
       }
     } finally {
       setLoading(false);
@@ -41,7 +61,7 @@ export default function QCErrorForm({ orderId: presetOrderId, onSuccess, onClose
     return (
       <div className="p-6 text-center">
         <p className="text-green-600 font-medium">
-          Error logged. Worker will be notified on next login.
+          Error logged. Packer gets {POINTS_QC_ERROR} points penalty and will see feedback on next login.
         </p>
         <button type="button" onClick={onClose} className="mt-4 text-farm-green">Close</button>
       </div>
@@ -52,25 +72,44 @@ export default function QCErrorForm({ orderId: presetOrderId, onSuccess, onClose
     <form onSubmit={handleSubmit} className="space-y-4 p-6">
       <h2 className="text-xl font-bold">Log QC Error</h2>
 
-      <div className="flex gap-2">
-        <input
-          type="text"
-          placeholder="Order ID"
-          value={orderId}
-          onChange={(e) => setOrderId(e.target.value)}
-          className="flex-1 p-3 border rounded-lg"
-          required
-        />
-        <button type="button" onClick={lookupOrder} className="px-4 py-2 border rounded-lg">
-          Lookup
-        </button>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">Packed order</label>
+        {loadingOrders ? (
+          <p className="text-sm text-gray-400">Loading packed orders...</p>
+        ) : (
+          <select
+            value={orderId}
+            onChange={(e) => setOrderId(e.target.value)}
+            className="w-full p-3 border rounded-lg"
+            required
+          >
+            <option value="">Select order ID</option>
+            {packedOrders.map((o) => (
+              <option key={o.order_id} value={o.order_id}>
+                {o.order_id} — {o.customer_name} ({o.total_weight_kg} kg)
+                {o.packer ? ` · ${o.packer.full_name}` : ''}
+              </option>
+            ))}
+          </select>
+        )}
       </div>
 
-      {orderInfo && (
-        <div className="bg-gray-50 p-3 rounded-lg text-sm">
-          <p>Customer: {orderInfo.customer_name}</p>
-          <p>Status: {orderInfo.status}</p>
-          <p>Packed by: {orderInfo.packed_by || 'N/A'}</p>
+      {selectedOrder && (
+        <div className="bg-gray-50 p-3 rounded-lg text-sm space-y-1">
+          <p><span className="text-gray-500">Customer:</span> {selectedOrder.customer_name}</p>
+          <p><span className="text-gray-500">Weight:</span> {selectedOrder.total_weight_kg} kg</p>
+          <p>
+            <span className="text-gray-500">Packed by:</span>{' '}
+            <span className="font-semibold text-ppf-purple">
+              {selectedOrder.packer?.full_name || selectedOrder.packed_by || 'Unknown'}
+            </span>
+            {selectedOrder.packer?.username && (
+              <span className="text-gray-400 font-mono ml-1">({selectedOrder.packer.username})</span>
+            )}
+          </p>
+          <p className="text-xs text-red-600 mt-2">
+            Logging this error will deduct {Math.abs(POINTS_QC_ERROR)} points from this packer.
+          </p>
         </div>
       )}
 
@@ -101,7 +140,7 @@ export default function QCErrorForm({ orderId: presetOrderId, onSuccess, onClose
         </button>
         <button
           type="submit"
-          disabled={loading}
+          disabled={loading || !orderId}
           className="flex-1 py-3 bg-red-600 text-white rounded-lg disabled:opacity-50"
         >
           {loading ? 'Saving...' : 'Log Error'}

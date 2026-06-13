@@ -1,25 +1,38 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import Link from 'next/link';
 import AdminShell from '@/components/layouts/AdminShell';
 import Button from '@/components/ui/Button';
 import Badge from '@/components/ui/Badge';
 import WorkerFormModal from '@/components/admin/WorkerFormModal';
+import WorkerDetailModal from '@/components/admin/WorkerDetailModal';
 import { ROLE_LABELS } from '@/lib/constants';
 import { LANG_LABELS } from '@/lib/speech';
 
 export default function AdminWorkersPage() {
   const [workers, setWorkers] = useState([]);
+  const [performance, setPerformance] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingWorker, setEditingWorker] = useState(null);
   const [confirmAction, setConfirmAction] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
+  const [detailWorkerId, setDetailWorkerId] = useState(null);
+
+  const perfById = useMemo(
+    () => Object.fromEntries(performance.map((p) => [p.worker_id, p.performance])),
+    [performance]
+  );
 
   const loadWorkers = useCallback(async () => {
     try {
-      const res = await fetch('/api/workers');
-      if (res.ok) setWorkers(await res.json());
+      const [workersRes, perfRes] = await Promise.all([
+        fetch('/api/workers'),
+        fetch('/api/workers/performance?days=30'),
+      ]);
+      if (workersRes.ok) setWorkers(await workersRes.json());
+      if (perfRes.ok) setPerformance(await perfRes.json());
     } finally {
       setLoading(false);
     }
@@ -63,7 +76,14 @@ export default function AdminWorkersPage() {
   return (
     <AdminShell
       title="Workers"
-      actions={<Button size="sm" onClick={openAdd}>Add Worker</Button>}
+      actions={
+        <>
+          <Link href="/admin/performance">
+            <Button size="sm" variant="secondary">Performance & Payroll</Button>
+          </Link>
+          <Button size="sm" onClick={openAdd}>Add Worker</Button>
+        </>
+      }
     >
       {loading ? (
         <p className="text-gray-500 text-sm">Loading workers...</p>
@@ -76,7 +96,10 @@ export default function AdminWorkersPage() {
         <>
           {/* Mobile cards */}
           <div className="md:hidden space-y-3">
-            {workers.map((w) => (
+            {workers.map((w) => {
+              const perf = perfById[w.worker_id];
+              const level = perf?.level;
+              return (
               <div key={w.worker_id} className="bg-surface-card rounded-2xl border border-gray-100 p-4 shadow-card">
                 <div className="flex justify-between items-start mb-3">
                   <div>
@@ -88,6 +111,22 @@ export default function AdminWorkersPage() {
                     {w.is_active ? 'Active' : 'Inactive'}
                   </Badge>
                 </div>
+                {w.role === 'worker' && perf && (
+                  <div className="grid grid-cols-3 gap-2 text-center text-xs mb-3">
+                    <div className="bg-gray-50 rounded-lg p-2">
+                      <p className="font-bold">{perf.total_points ?? 0}</p>
+                      <p className="text-gray-400">Points</p>
+                    </div>
+                    <div className="bg-gray-50 rounded-lg p-2">
+                      <p className="font-bold text-green-700">₹{perf.estimated_earnings ?? 0}</p>
+                      <p className="text-gray-400">Payout</p>
+                    </div>
+                    <div className="bg-gray-50 rounded-lg p-2">
+                      <p className="font-bold" style={{ color: level?.color }}>{level?.name?.replace(' Packer', '') || '—'}</p>
+                      <p className="text-gray-400">Level</p>
+                    </div>
+                  </div>
+                )}
                 <div className="grid grid-cols-2 gap-2 text-sm text-gray-600 mb-4">
                   <span>Language: {langLabel(w.preferred_lang)}</span>
                   <span>Role: {ROLE_LABELS[w.role] || w.role}</span>
@@ -96,6 +135,11 @@ export default function AdminWorkersPage() {
                   </span>
                 </div>
                 <div className="flex gap-2">
+                  {w.role === 'worker' && (
+                    <Button size="sm" variant="secondary" className="flex-1" onClick={() => setDetailWorkerId(w.worker_id)}>
+                      Stats
+                    </Button>
+                  )}
                   <Button size="sm" variant="secondary" className="flex-1" onClick={() => openEdit(w)}>
                     Edit
                   </Button>
@@ -109,12 +153,12 @@ export default function AdminWorkersPage() {
                   </Button>
                 </div>
               </div>
-            ))}
+            );})}
           </div>
 
           {/* Desktop table */}
           <div className="hidden md:block bg-surface-card rounded-2xl border border-gray-100 overflow-hidden shadow-card admin-table-wrap">
-            <table className="w-full text-sm min-w-[800px]">
+            <table className="w-full text-sm min-w-[1000px]">
               <thead className="bg-surface-muted">
                 <tr>
                   <th className="p-3 text-left font-semibold text-gray-700">ID</th>
@@ -122,19 +166,41 @@ export default function AdminWorkersPage() {
                   <th className="p-3 text-left font-semibold text-gray-700">Name</th>
                   <th className="p-3 text-left font-semibold text-gray-700">Language</th>
                   <th className="p-3 text-left font-semibold text-gray-700">Role</th>
+                  <th className="p-3 text-right font-semibold text-gray-700">Points</th>
+                  <th className="p-3 text-right font-semibold text-gray-700">Est. payout</th>
+                  <th className="p-3 text-left font-semibold text-gray-700">Level</th>
                   <th className="p-3 text-left font-semibold text-gray-700">Status</th>
                   <th className="p-3 text-left font-semibold text-gray-700">Last Login</th>
                   <th className="p-3 text-left font-semibold text-gray-700">Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {workers.map((w) => (
+                {workers.map((w) => {
+                  const perf = perfById[w.worker_id];
+                  const level = perf?.level;
+                  return (
                   <tr key={w.worker_id} className="border-t border-gray-100 hover:bg-gray-50/50">
                     <td className="p-3 font-mono text-xs text-gray-600">{w.worker_id}</td>
                     <td className="p-3">{w.username}</td>
                     <td className="p-3 font-medium">{w.full_name}</td>
                     <td className="p-3">{langLabel(w.preferred_lang)}</td>
                     <td className="p-3">{ROLE_LABELS[w.role] || w.role}</td>
+                    <td className="p-3 text-right font-mono">
+                      {w.role === 'worker' ? (perf?.total_points ?? '—') : '—'}
+                    </td>
+                    <td className="p-3 text-right font-medium text-green-700">
+                      {w.role === 'worker' ? `₹${perf?.estimated_earnings ?? 0}` : '—'}
+                    </td>
+                    <td className="p-3">
+                      {w.role === 'worker' && level ? (
+                        <span
+                          className="text-xs font-semibold px-2 py-1 rounded-lg"
+                          style={{ backgroundColor: `${level.color}18`, color: level.color }}
+                        >
+                          {level.name?.replace(' Packer', '')}
+                        </span>
+                      ) : '—'}
+                    </td>
                     <td className="p-3">
                       <Badge status={w.is_active ? 'PACKED' : 'ERROR'}>
                         {w.is_active ? 'Active' : 'Inactive'}
@@ -145,6 +211,15 @@ export default function AdminWorkersPage() {
                     </td>
                     <td className="p-3">
                       <div className="flex gap-2">
+                        {w.role === 'worker' && (
+                          <button
+                            type="button"
+                            onClick={() => setDetailWorkerId(w.worker_id)}
+                            className="text-ppf-purple text-sm font-medium hover:underline"
+                          >
+                            Stats
+                          </button>
+                        )}
                         <button
                           type="button"
                           onClick={() => openEdit(w)}
@@ -164,7 +239,7 @@ export default function AdminWorkersPage() {
                       </div>
                     </td>
                   </tr>
-                ))}
+                );})}
               </tbody>
             </table>
           </div>
@@ -205,6 +280,13 @@ export default function AdminWorkersPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {detailWorkerId && (
+        <WorkerDetailModal
+          workerId={detailWorkerId}
+          onClose={() => setDetailWorkerId(null)}
+        />
       )}
     </AdminShell>
   );
