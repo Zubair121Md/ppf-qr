@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/db';
-import { getWorkerFromRequest } from '@/lib/auth';
+import { getWorkerFromRequest, verifyOrderOwnership } from '@/lib/auth';
 
 export async function PATCH(request, { params }) {
   const worker = await getWorkerFromRequest(request);
@@ -17,6 +17,11 @@ export async function PATCH(request, { params }) {
     .single();
 
   if (itemError || !item) {
+    return NextResponse.json({ error: 'Item not found' }, { status: 404 });
+  }
+
+  const orderOwned = await verifyOrderOwnership(item.order_id, worker.worker_id);
+  if (!orderOwned) {
     return NextResponse.json({ error: 'Item not found' }, { status: 404 });
   }
 

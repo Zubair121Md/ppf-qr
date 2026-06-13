@@ -109,6 +109,34 @@ CREATE INDEX idx_packing_log_worker ON packing_log(worker_id);
 CREATE INDEX idx_qc_errors_worker ON qc_errors(worker_id);
 CREATE INDEX idx_qc_errors_unacked ON qc_errors(worker_id) WHERE acknowledged_at IS NULL;
 
+-- Security tables (run once on existing databases)
+ALTER TABLE workers ADD COLUMN IF NOT EXISTS last_attempt_at TIMESTAMPTZ;
+
+CREATE TABLE IF NOT EXISTS revoked_tokens (
+  jti         TEXT PRIMARY KEY,
+  revoked_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+  reason      TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_revoked_tokens_time ON revoked_tokens(revoked_at);
+
+CREATE TABLE IF NOT EXISTS audit_log (
+  id           SERIAL PRIMARY KEY,
+  event_type   TEXT NOT NULL,
+  actor_id     TEXT,
+  actor_role   TEXT,
+  target_type  TEXT,
+  target_id    TEXT,
+  ip_address   TEXT,
+  user_agent   TEXT,
+  details      JSONB DEFAULT '{}',
+  success      BOOLEAN DEFAULT true,
+  created_at   TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_audit_actor ON audit_log(actor_id);
+CREATE INDEX IF NOT EXISTS idx_audit_event ON audit_log(event_type);
+CREATE INDEX IF NOT EXISTS idx_audit_time ON audit_log(created_at);
+CREATE INDEX IF NOT EXISTS idx_audit_target ON audit_log(target_type, target_id);
+
 -- Row Level Security (for future client-side Supabase calls)
 ALTER TABLE workers ENABLE ROW LEVEL SECURITY;
 ALTER TABLE orders ENABLE ROW LEVEL SECURITY;

@@ -20,6 +20,7 @@ function canUnpack(order) {
 
 export default function AdminOrdersPage() {
   const [orders, setOrders] = useState([]);
+  const [workerList, setWorkerList] = useState([]);
   const [workers, setWorkers] = useState({});
   const [loading, setLoading] = useState(true);
   const [showImport, setShowImport] = useState(false);
@@ -34,6 +35,7 @@ export default function AdminOrdersPage() {
     if (workersRes.ok) {
       const w = await workersRes.json();
       setWorkers(Object.fromEntries(w.map((x) => [x.worker_id, x])));
+      setWorkerList(w.filter((x) => x.role === 'worker' && x.is_active));
     }
     if (ordersRes.ok) {
       setOrders(await ordersRes.json());
@@ -114,7 +116,10 @@ export default function AdminOrdersPage() {
         )}
 
         <div>
-          <h2 className="font-semibold text-gray-900 mb-3">All orders</h2>
+          <h2 className="font-semibold text-gray-900 mb-1">All orders</h2>
+          <p className="text-xs text-gray-500 mb-3">
+            Assign workers manually using the dropdown. Unassigned orders go to the overflow pool or wait for auto-distribution on import.
+          </p>
           {loading ? (
             <p className="text-gray-500 text-sm">Loading orders...</p>
           ) : orders.length === 0 ? (
@@ -138,11 +143,12 @@ export default function AdminOrdersPage() {
                       <span>Items: {packedProgress(o)}</span>
                       <span className="col-span-2">
                         Worker:{' '}
-                        {o.assigned_worker_id
-                          ? workers[o.assigned_worker_id]?.full_name || o.assigned_worker_id
-                          : o.assignment_type === 'overflow'
-                            ? 'Overflow (unclaimed)'
-                            : 'Unassigned'}
+                        <OrderAssignSelect
+                          order={o}
+                          workers={workerList}
+                          onAssigned={loadOrders}
+                          compact
+                        />
                       </span>
                       <span className="col-span-2 text-xs text-gray-400">
                         {new Date(o.created_at).toLocaleString()}
@@ -185,12 +191,12 @@ export default function AdminOrdersPage() {
                         <td className="p-3">
                           <Badge status={o.status}>{getOrderStatusLabel(o.status, true)}</Badge>
                         </td>
-                        <td className="p-3 text-gray-700">
-                          {o.assigned_worker_id
-                            ? workers[o.assigned_worker_id]?.full_name || o.assigned_worker_id
-                            : o.assignment_type === 'overflow'
-                              ? 'Overflow'
-                              : '—'}
+                        <td className="p-3">
+                          <OrderAssignSelect
+                            order={o}
+                            workers={workerList}
+                            onAssigned={loadOrders}
+                          />
                         </td>
                         <td className="p-3">{packedProgress(o)} items</td>
                         <td className="p-3 text-gray-500 text-xs">

@@ -1,11 +1,17 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/db';
-import { getWorkerFromRequest } from '@/lib/auth';
+import { getWorkerFromRequest, requireStaff, verifyOrderOwnership } from '@/lib/auth';
+import { OrderIdSchema } from '@/lib/validations';
 
 export async function GET(request, { params }) {
   const worker = await getWorkerFromRequest(request);
   if (!worker) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  const orderIdResult = OrderIdSchema.safeParse(params.id);
+  if (!orderIdResult.success) {
+    return NextResponse.json({ error: 'Order not found' }, { status: 404 });
   }
 
   const { data, error } = await supabaseAdmin
@@ -17,11 +23,18 @@ export async function GET(request, { params }) {
         products (product_id, name_english, name_tamil, name_malayalam, name_hindi, image_url, category)
       )
     `)
-    .eq('order_id', params.id)
+    .eq('order_id', orderIdResult.data)
     .single();
 
   if (error || !data) {
     return NextResponse.json({ error: 'Order not found' }, { status: 404 });
+  }
+
+  if (!requireStaff(worker)) {
+    const owns = await verifyOrderOwnership(orderIdResult.data, worker.worker_id);
+    if (!owns) {
+      return NextResponse.json({ error: 'Order not found' }, { status: 404 });
+    }
   }
 
   return NextResponse.json(data);

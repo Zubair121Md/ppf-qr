@@ -8,11 +8,28 @@ Farm packing system with QR scanning, multi-language audio feedback, and admin o
 
 | Role | Username | Password |
 |------|----------|----------|
+| Manager | `manager` | `manager123` |
 | Admin | `admin` | `admin123` |
 | Workers | `l1` – `l10` | `farmscan123` |
 
-> **Admin users** are redirected to `/admin` — they do not see worker orders.  
-> **Workers** log in at `/worker/login` to see assigned orders.
+> **Manager / Admin** use the panel at `/admin` — assign orders, manage workers, unpack completed orders.  
+> **Workers** log in at `/worker/login` to pack assigned orders.
+
+## Manual order assignment
+
+On **Admin → Orders**, use the **Worker** dropdown on any non-complete order to assign or reassign a packer. Choose **Unassigned** to return an order to the pool.
+
+## Security
+
+Generate a strong JWT secret:
+
+```bash
+openssl rand -base64 32
+```
+
+Copy `.env.example` to `.env.local` and fill in values. See `SECURITY_CHECKLIST.md` for pre-release verification.
+
+After updating `schema.sql`, run the security section in Supabase SQL Editor (`revoked_tokens`, `audit_log` tables).
 
 ## Environment Variables (Vercel — all 5 required)
 
@@ -21,7 +38,7 @@ Farm packing system with QR scanning, multi-language audio feedback, and admin o
 | `NEXT_PUBLIC_SUPABASE_URL` | `https://xxx.supabase.co` |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | anon key |
 | `SUPABASE_SERVICE_ROLE_KEY` | service role key |
-| `JWT_SECRET` | random 32+ char string |
+| `JWT_SECRET` | `openssl rand -base64 32` (min 32 chars) |
 | `NEXT_PUBLIC_APP_URL` | `https://ppf-qr.vercel.app` |
 
 Verify: `https://ppf-qr.vercel.app/api/health` → `{ "ok": true }`
