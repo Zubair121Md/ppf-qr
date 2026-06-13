@@ -8,6 +8,9 @@ export const metadata = {
     statusBarStyle: 'black-translucent',
     title: BRAND.shortName,
   },
+  other: {
+    'mobile-web-app-capable': 'yes',
+  },
 };
 
 export const viewport = {

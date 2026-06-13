@@ -5,6 +5,7 @@ import AdminShell from '@/components/layouts/AdminShell';
 import OrderImport from '@/components/admin/OrderImport';
 import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
+import OrderAssignSelect from '@/components/admin/OrderAssignSelect';
 import { getOrderStatusLabel, canUnpackOrder } from '@/lib/order-status';
 
 function packedProgress(order) {

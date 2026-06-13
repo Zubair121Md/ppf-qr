@@ -17,6 +17,9 @@ export const metadata = {
     statusBarStyle: 'default',
     title: BRAND.shortName,
   },
+  other: {
+    'mobile-web-app-capable': 'yes',
+  },
   formatDetection: {
     telephone: false,
   },
