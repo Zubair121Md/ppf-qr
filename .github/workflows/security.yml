@@ -23,6 +23,9 @@ jobs:
       - run: npm audit --audit-level=high
         continue-on-error: true
 
+  # CodeQL analysis runs on every push. Results upload to the Security tab only
+  # when Code scanning is enabled (free for public repos; private repos need
+  # GitHub Advanced Security). With upload disabled the scan still runs in CI logs.
   code-security:
     runs-on: ubuntu-latest
     permissions:
@@ -37,3 +40,4 @@ jobs:
       - uses: github/codeql-action/analyze@v3
         with:
           category: '/language:javascript'
+          upload: false
