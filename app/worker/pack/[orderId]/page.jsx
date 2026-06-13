@@ -17,6 +17,7 @@ import {
   speakMessage,
   syncWorkerLangFromProfile,
 } from '@/lib/speech';
+import { isOrderFullyPacked } from '@/lib/order-sync';
 
 function PackOrderContent() {
   const router = useRouter();
@@ -28,21 +29,15 @@ function PackOrderContent() {
   const [order, setOrder] = useState(null);
   const [worker, setWorker] = useState(null);
   const [selectedItem, setSelectedItem] = useState(null);
-  const [orderComplete, setOrderComplete] = useState(false);
+  const [showCompleteScreen, setShowCompleteScreen] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (searchParams.get('complete') === 'true') {
-      setOrderComplete(true);
-    }
-  }, [searchParams]);
-
-  useEffect(() => {
-    if (orderComplete) {
+    if (showCompleteScreen) {
       speakMessage('order_complete', lang);
     }
-  }, [orderComplete, lang]);
+  }, [showCompleteScreen, lang]);
 
   useEffect(() => {
     async function load() {
@@ -64,6 +59,8 @@ function PackOrderContent() {
           return;
         }
         const orderData = await orderRes.json();
+        const items = orderData.order_items || [];
+        const fullyPacked = isOrderFullyPacked(items);
 
         if (
           orderData.assigned_worker_id &&
@@ -79,19 +76,27 @@ function PackOrderContent() {
           return;
         }
 
-        if (orderData.status === 'PACKED') {
+        if (orderData.status === 'PACKED' && fullyPacked) {
           setError('This order is already complete');
           return;
         }
 
         setOrder(orderData);
+
+        const justFinished = searchParams.get('complete') === 'true';
+        if (justFinished && fullyPacked) {
+          setShowCompleteScreen(true);
+          router.replace(`/worker/pack/${orderId}`, { scroll: false });
+        } else if (justFinished && !fullyPacked) {
+          router.replace(`/worker/pack/${orderId}`, { scroll: false });
+        }
       } finally {
         setLoading(false);
       }
     }
 
     load();
-  }, [orderId, router]);
+  }, [orderId, router, searchParams]);
 
   function handleItemTap(item) {
     if (item.is_packed) return;
@@ -122,7 +127,7 @@ function PackOrderContent() {
     );
   }
 
-  if (orderComplete && order) {
+  if (showCompleteScreen && order) {
     return (
       <div className="min-h-dvh bg-ppf-purple flex flex-col items-center justify-center text-white p-6 safe-top safe-bottom safe-x text-center">
         <div className="w-24 h-24 rounded-full bg-white/20 flex items-center justify-center mb-6">

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 
-const BUILD_VERSION = 'ppf-v6-assign-security';
+const BUILD_VERSION = 'ppf-v7-unpack-repack-fix';
 
 export async function GET() {
   return NextResponse.json({

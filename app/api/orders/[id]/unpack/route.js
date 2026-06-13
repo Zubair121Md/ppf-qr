@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/db';
 import { getWorkerFromRequest, requireStaff } from '@/lib/auth';
+import { resetOrderItemsForUnpack, syncOrderStatusFromItems } from '@/lib/order-sync';
 
 export async function PATCH(request, { params }) {
   const worker = await getWorkerFromRequest(request);
@@ -20,23 +21,14 @@ export async function PATCH(request, { params }) {
     return NextResponse.json({ error: 'Order not found' }, { status: 404 });
   }
 
-  const unpackable = ['PACKED'];
-  if (!unpackable.includes(order.status)) {
+  if (order.status !== 'PACKED') {
     return NextResponse.json(
-      { error: 'Only completed orders can be unpacked. Finish packing or wait until the order is marked complete.' },
+      { error: 'Only completed orders can be unpacked.' },
       { status: 400 }
     );
   }
 
-  const { error: itemsError } = await supabaseAdmin
-    .from('order_items')
-    .update({
-      is_packed: false,
-      packed_at: null,
-      packed_by: null,
-    })
-    .eq('order_id', orderId);
-
+  const { error: itemsError } = await resetOrderItemsForUnpack(orderId);
   if (itemsError) {
     return NextResponse.json({ error: itemsError.message }, { status: 500 });
   }
@@ -59,6 +51,8 @@ export async function PATCH(request, { params }) {
   if (orderUpdateError) {
     return NextResponse.json({ error: orderUpdateError.message }, { status: 500 });
   }
+
+  await syncOrderStatusFromItems(orderId);
 
   await supabaseAdmin.from('packing_log').insert({
     order_id: orderId,

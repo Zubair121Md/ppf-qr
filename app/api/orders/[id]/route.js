@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/db';
 import { getWorkerFromRequest, requireStaff, verifyOrderOwnership } from '@/lib/auth';
 import { OrderIdSchema } from '@/lib/validations';
+import { syncOrderStatusFromItems } from '@/lib/order-sync';
 
 export async function GET(request, { params }) {
   const worker = await getWorkerFromRequest(request);
@@ -13,6 +14,15 @@ export async function GET(request, { params }) {
   if (!orderIdResult.success) {
     return NextResponse.json({ error: 'Order not found' }, { status: 404 });
   }
+
+  if (!requireStaff(worker)) {
+    const owns = await verifyOrderOwnership(orderIdResult.data, worker.worker_id);
+    if (!owns) {
+      return NextResponse.json({ error: 'Order not found' }, { status: 404 });
+    }
+  }
+
+  await syncOrderStatusFromItems(orderIdResult.data);
 
   const { data, error } = await supabaseAdmin
     .from('orders')
@@ -28,13 +38,6 @@ export async function GET(request, { params }) {
 
   if (error || !data) {
     return NextResponse.json({ error: 'Order not found' }, { status: 404 });
-  }
-
-  if (!requireStaff(worker)) {
-    const owns = await verifyOrderOwnership(orderIdResult.data, worker.worker_id);
-    if (!owns) {
-      return NextResponse.json({ error: 'Order not found' }, { status: 404 });
-    }
   }
 
   return NextResponse.json(data);

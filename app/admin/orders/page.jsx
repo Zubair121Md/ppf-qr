@@ -52,9 +52,12 @@ export default function AdminOrdersPage() {
     setUnpacking(true);
     try {
       const res = await fetch(`/api/orders/${orderId}/unpack`, { method: 'PATCH' });
+      const data = await res.json().catch(() => ({}));
       if (res.ok) {
         setUnpackTarget(null);
         await loadOrders();
+      } else {
+        alert(data.error || 'Unpack failed');
       }
     } finally {
       setUnpacking(false);
