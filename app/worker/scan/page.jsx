@@ -50,7 +50,7 @@ function ScanContent() {
     setScanError('');
 
     const scannedProductId = extractProductIdFromScan(rawValue);
-    const expectedProductId = item.product_id;
+    const expectedProductId = (item.product_id || '').trim().toUpperCase();
     const productName = getProductName(item.products, lang);
     const expectedName = getProductName(item.products, lang);
 

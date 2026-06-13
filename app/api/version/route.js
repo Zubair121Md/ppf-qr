@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 
-const BUILD_VERSION = 'ppf-v3-admin-crud-audio';
+const BUILD_VERSION = 'ppf-v3-qr-scan-fix';
 
 export async function GET() {
   return NextResponse.json({
