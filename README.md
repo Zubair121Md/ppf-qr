@@ -31,6 +31,10 @@ Copy `.env.example` to `.env.local` and fill in values. See `SECURITY_CHECKLIST.
 
 After updating `schema.sql`, run the security section in Supabase SQL Editor (`revoked_tokens`, `audit_log` tables).
 
+## GitHub CodeQL
+
+The `code-security` job runs on every push under **Actions → Security Checks**. This repo is **private**, so the **Security → Code scanning** tab needs [GitHub Advanced Security](https://docs.github.com/en/get-started/learning-about-github/about-github-advanced-security) (paid for private repos). The workflow uses `upload: false` so CI passes; scan output is in the Actions job log.
+
 ## Environment Variables (Vercel — all 5 required)
 
 | Variable | Example |
