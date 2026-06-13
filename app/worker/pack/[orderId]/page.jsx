@@ -74,15 +74,17 @@ function PackOrderContent() {
           return;
         }
 
-        if (!orderData.lock_token) {
-          await fetch(`/api/orders/${orderId}/claim`, { method: 'PATCH' });
-          const refreshed = await fetch(`/api/orders/${orderId}`);
-          if (refreshed.ok) {
-            setOrder(await refreshed.json());
-          }
-        } else {
-          setOrder(orderData);
+        if (orderData.assignment_type === 'overflow' && !orderData.assigned_worker_id) {
+          setError('Claim this order from Available orders first');
+          return;
         }
+
+        if (orderData.status === 'PACKED') {
+          setError('This order is already complete');
+          return;
+        }
+
+        setOrder(orderData);
       } finally {
         setLoading(false);
       }

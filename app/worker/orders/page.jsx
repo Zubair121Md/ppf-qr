@@ -12,10 +12,12 @@ import { IconRefresh } from '@/components/ui/Icons';
 import { fetchWithRetry } from '@/lib/fetch-retry';
 import { getWorkerLang, syncWorkerLangFromProfile } from '@/lib/speech';
 import { STAFF_ROLES } from '@/lib/constants';
+import { splitWorkerOrders, canWorkerOpenOrder } from '@/lib/order-status';
 
 export default function WorkerOrdersPage() {
   const router = useRouter();
-  const [orders, setOrders] = useState([]);
+  const [activeOrders, setActiveOrders] = useState([]);
+  const [completedOrders, setCompletedOrders] = useState([]);
   const [overflowOrders, setOverflowOrders] = useState([]);
   const [feedbackErrors, setFeedbackErrors] = useState([]);
   const [showFeedback, setShowFeedback] = useState(false);
@@ -28,12 +30,10 @@ export default function WorkerOrdersPage() {
     const ordersRes = await fetchWithRetry('/api/orders?worker=me&date=today');
     if (ordersRes.ok) {
       const data = await ordersRes.json();
-      const assigned = data.filter(
-        (o) => o.assigned_worker_id === me.worker_id && o.assignment_type !== 'overflow'
-      );
-      const overflow = data.filter((o) => o.assignment_type === 'overflow' && !o.assigned_worker_id);
-      setOrders(assigned);
-      setOverflowOrders(overflow);
+      const { active, completed, available } = splitWorkerOrders(data, me.worker_id);
+      setActiveOrders(active);
+      setCompletedOrders(completed);
+      setOverflowOrders(available);
     }
   }, []);
 
@@ -127,39 +127,69 @@ export default function WorkerOrdersPage() {
         }
       />
 
-      <div className="worker-content space-y-3">
-        {orders.length === 0 ? (
-          <EmptyState
-            title="No orders assigned today"
-            description="No orders are assigned to your account yet. Check Available orders below, or ask your supervisor to import orders in the admin panel."
-          />
-        ) : (
-          orders.map((order) => (
-            <OrderCard
-              key={order.order_id}
-              order={order}
-              lang={lang}
-              onClick={() => {
-                if (['PENDING', 'ASSIGNED', 'PACKING'].includes(order.status)) {
-                  router.push(`/worker/pack/${order.order_id}`);
-                }
-              }}
+      <div className="worker-content space-y-6">
+        <section>
+          <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3 px-1">
+            Assigned to you
+          </h2>
+          {activeOrders.length === 0 ? (
+            <EmptyState
+              title="No active orders"
+              description="Orders assigned to you will appear here. Check Available orders below to claim extra work."
             />
-          ))
-        )}
+          ) : (
+            <div className="space-y-3">
+              {activeOrders.map((order) => (
+                <OrderCard
+                  key={order.order_id}
+                  order={order}
+                  lang={lang}
+                  onClick={() => {
+                    if (worker && canWorkerOpenOrder(order, worker.worker_id)) {
+                      router.push(`/worker/pack/${order.order_id}`);
+                    }
+                  }}
+                />
+              ))}
+            </div>
+          )}
+        </section>
 
         {overflowOrders.length > 0 && (
-          <section className="pt-4">
-            <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3 px-1">
-              Available orders
+          <section>
+            <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-1 px-1">
+              Available to claim
             </h2>
+            <p className="text-xs text-gray-400 mb-3 px-1">
+              Small overflow orders waiting for a packer. Tap to claim and start packing.
+            </p>
             <div className="space-y-3">
               {overflowOrders.map((order) => (
                 <OrderCard
                   key={order.order_id}
                   order={order}
                   lang={lang}
+                  statusOverride="PENDING"
+                  statusLabel="Available"
                   onClick={() => claimOrder(order.order_id)}
+                />
+              ))}
+            </div>
+          </section>
+        )}
+
+        {completedOrders.length > 0 && (
+          <section>
+            <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3 px-1">
+              Completed today
+            </h2>
+            <div className="space-y-3">
+              {completedOrders.map((order) => (
+                <OrderCard
+                  key={order.order_id}
+                  order={order}
+                  lang={lang}
+                  dimmed
                 />
               ))}
             </div>

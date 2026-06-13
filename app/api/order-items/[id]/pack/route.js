@@ -38,6 +38,24 @@ export async function PATCH(request, { params }) {
     return NextResponse.json({ error: updateError.message }, { status: 400 });
   }
 
+  const { data: orderRow } = await supabaseAdmin
+    .from('orders')
+    .select('status, assigned_worker_id')
+    .eq('order_id', item.order_id)
+    .single();
+
+  if (orderRow?.status === 'ASSIGNED') {
+    await supabaseAdmin
+      .from('orders')
+      .update({
+        status: 'PACKING',
+        locked_by: worker.worker_id,
+        locked_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+      .eq('order_id', item.order_id);
+  }
+
   await supabaseAdmin.from('packing_log').insert({
     order_id: item.order_id,
     order_item_id: itemId,

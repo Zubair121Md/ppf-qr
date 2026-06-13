@@ -24,6 +24,7 @@ export async function PATCH(request, { params }) {
   }
 
   const lockToken = order.lock_token || randomUUID();
+  const isOverflowClaim = order.assignment_type === 'overflow' && !order.assigned_worker_id;
 
   const { data, error } = await supabaseAdmin
     .from('orders')
@@ -31,8 +32,9 @@ export async function PATCH(request, { params }) {
       lock_token: lockToken,
       locked_by: worker.worker_id,
       locked_at: new Date().toISOString(),
-      status: 'PACKING',
+      status: 'ASSIGNED',
       assigned_worker_id: order.assigned_worker_id || worker.worker_id,
+      ...(isOverflowClaim ? { assignment_type: 'batch' } : {}),
     })
     .eq('order_id', params.id)
     .or(`lock_token.is.null,locked_by.eq.${worker.worker_id}`)

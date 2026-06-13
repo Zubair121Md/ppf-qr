@@ -5,6 +5,7 @@ import AdminShell from '@/components/layouts/AdminShell';
 import OrderImport from '@/components/admin/OrderImport';
 import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
+import { getOrderStatusLabel, canUnpackOrder } from '@/lib/order-status';
 
 function packedProgress(order) {
   const items = order.order_items || [];
@@ -14,7 +15,7 @@ function packedProgress(order) {
 }
 
 function canUnpack(order) {
-  return ['PACKED', 'PACKING', 'ERROR'].includes(order.status);
+  return canUnpackOrder(order);
 }
 
 export default function AdminOrdersPage() {
@@ -76,7 +77,7 @@ export default function AdminOrdersPage() {
       }
     >
       <div className="space-y-6">
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
           <div className="bg-surface-card rounded-2xl border border-gray-100 p-4 shadow-card">
             <p className="text-xs text-gray-500 uppercase tracking-wide">Today</p>
             <p className="text-2xl font-bold text-gray-900">{todayOrders.length}</p>
@@ -86,13 +87,19 @@ export default function AdminOrdersPage() {
             <p className="text-2xl font-bold text-gray-900">{orders.length}</p>
           </div>
           <div className="bg-surface-card rounded-2xl border border-gray-100 p-4 shadow-card">
-            <p className="text-xs text-gray-500 uppercase tracking-wide">Packing</p>
+            <p className="text-xs text-gray-500 uppercase tracking-wide">Ready</p>
+            <p className="text-2xl font-bold text-blue-700">
+              {orders.filter((o) => o.status === 'ASSIGNED').length}
+            </p>
+          </div>
+          <div className="bg-surface-card rounded-2xl border border-gray-100 p-4 shadow-card">
+            <p className="text-xs text-gray-500 uppercase tracking-wide">In progress</p>
             <p className="text-2xl font-bold text-amber-700">
               {orders.filter((o) => o.status === 'PACKING').length}
             </p>
           </div>
           <div className="bg-surface-card rounded-2xl border border-gray-100 p-4 shadow-card">
-            <p className="text-xs text-gray-500 uppercase tracking-wide">Packed</p>
+            <p className="text-xs text-gray-500 uppercase tracking-wide">Complete</p>
             <p className="text-2xl font-bold text-green-700">
               {orders.filter((o) => o.status === 'PACKED').length}
             </p>
@@ -124,7 +131,7 @@ export default function AdminOrdersPage() {
                         <p className="font-bold font-mono text-sm">{o.order_id}</p>
                         <p className="text-gray-700">{o.customer_name}</p>
                       </div>
-                      <Badge status={o.status}>{o.status}</Badge>
+                      <Badge status={o.status}>{getOrderStatusLabel(o.status, true)}</Badge>
                     </div>
                     <div className="grid grid-cols-2 gap-2 text-sm text-gray-600 mb-3">
                       <span>{o.total_weight_kg} kg</span>
@@ -176,7 +183,7 @@ export default function AdminOrdersPage() {
                         <td className="p-3 font-medium">{o.customer_name}</td>
                         <td className="p-3">{o.total_weight_kg} kg</td>
                         <td className="p-3">
-                          <Badge status={o.status}>{o.status}</Badge>
+                          <Badge status={o.status}>{getOrderStatusLabel(o.status, true)}</Badge>
                         </td>
                         <td className="p-3 text-gray-700">
                           {o.assigned_worker_id
@@ -221,7 +228,7 @@ export default function AdminOrdersPage() {
               {unpackTarget.customer_name} · {unpackTarget.total_weight_kg} kg
             </p>
             <p className="text-sm text-amber-800 bg-amber-50 border border-amber-100 rounded-xl px-4 py-3 mb-6">
-              All packed items will be reset. The order returns to assigned status so the worker can pack it again.
+              This will reset a completed order back to Ready so the worker can pack it again.
             </p>
             <div className="flex gap-2">
               <Button variant="secondary" fullWidth onClick={() => setUnpackTarget(null)}>

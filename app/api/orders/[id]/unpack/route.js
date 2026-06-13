@@ -20,10 +20,10 @@ export async function PATCH(request, { params }) {
     return NextResponse.json({ error: 'Order not found' }, { status: 404 });
   }
 
-  const unpackable = ['PACKED', 'PACKING', 'ERROR'];
+  const unpackable = ['PACKED'];
   if (!unpackable.includes(order.status)) {
     return NextResponse.json(
-      { error: `Cannot unpack order with status ${order.status}. Only packed or in-progress orders can be reset.` },
+      { error: 'Only completed orders can be unpacked. Finish packing or wait until the order is marked complete.' },
       { status: 400 }
     );
   }

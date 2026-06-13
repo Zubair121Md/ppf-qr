@@ -2,10 +2,20 @@
 
 import Badge from '@/components/ui/Badge';
 import { getProductName } from '@/lib/speech';
+import { getOrderStatusLabel } from '@/lib/order-status';
 
-export default function OrderCard({ order, lang, onClick }) {
+export default function OrderCard({
+  order,
+  lang,
+  onClick,
+  statusOverride,
+  statusLabel,
+  dimmed = false,
+}) {
   const items = order.order_items || [];
   const packedCount = items.filter((i) => i.is_packed).length;
+  const displayStatus = statusOverride || order.status;
+  const badgeText = statusLabel || getOrderStatusLabel(displayStatus, true);
   const productList = items
     .map((i) => {
       const name = getProductName(i.products, lang);
@@ -13,18 +23,16 @@ export default function OrderCard({ order, lang, onClick }) {
     })
     .join(', ');
 
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="w-full text-left bg-surface-card rounded-2xl border border-gray-100 p-4 shadow-card card-press min-h-[88px]"
-    >
+  const baseClass = `w-full text-left bg-surface-card rounded-2xl border border-gray-100 p-4 shadow-card min-h-[88px] ${dimmed ? 'opacity-60' : ''}`;
+
+  const content = (
+    <>
       <div className="flex justify-between items-start gap-3 mb-2">
         <div className="min-w-0 flex-1">
           <p className="font-bold text-lg text-gray-900 truncate">{order.customer_name}</p>
           <p className="text-xs text-gray-400 font-mono mt-0.5">{order.order_id}</p>
         </div>
-        <Badge status={order.status}>{order.status}</Badge>
+        <Badge status={displayStatus}>{badgeText}</Badge>
       </div>
 
       <div className="flex items-center gap-3 text-sm text-gray-600">
@@ -42,6 +50,16 @@ export default function OrderCard({ order, lang, onClick }) {
       {productList && (
         <p className="text-sm text-gray-400 mt-2 line-clamp-2 leading-snug">{productList}</p>
       )}
-    </button>
+    </>
   );
+
+  if (onClick) {
+    return (
+      <button type="button" onClick={onClick} className={`${baseClass} card-press`}>
+        {content}
+      </button>
+    );
+  }
+
+  return <div className={baseClass}>{content}</div>;
 }
